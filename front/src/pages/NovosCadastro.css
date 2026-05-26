@@ -1,0 +1,219 @@
+/* BREADCRUMB */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-size: 12.5px;
+}
+.bc-link {
+  color: var(--blue);
+  text-decoration: none;
+  font-weight: 500;
+}
+.bc-link:hover { text-decoration: underline; }
+.bc-sep { color: var(--muted); }
+.bc-current { color: var(--muted); font-weight: 500; }
+
+/* CADASTRO GRID */
+.cadastro-grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 18px;
+  align-items: start;
+}
+
+/* FORM CARD */
+.form-card {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+}
+.form-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.form-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.etapa-badge {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--blue);
+  background: #eef3ff;
+  border-radius: 20px;
+  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* FIELDS */
+.fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+.field-group input {
+  padding: 10px 13px;
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  background: #f9fafd;
+  outline: none;
+  transition: border-color .2s, background .2s, box-shadow .2s;
+}
+.field-group input:focus {
+  border-color: var(--blue);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(29,78,216,.08);
+}
+
+/* Form actions row */
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+/* DOCS COLUMN */
+.docs-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.docs-card {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+}
+.docs-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.docs-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.upload-area {
+  border: 2px dashed #93c5fd;
+  border-radius: 10px;
+  background: #eff6ff;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+  margin-bottom: 18px;
+}
+.upload-area:hover { background: #dbeafe; border-color: #60a5fa; }
+.upload-icon {
+  width: 42px;
+  height: 42px;
+  background: #dbeafe;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.upload-text {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--blue);
+}
+.upload-hint {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.docs-sugest {}
+.sugest-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.sugest-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.sugest-item input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: var(--blue);
+}
+
+/* Info card below docs */
+.docs-info-card {
+  background: #f0f4fc;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.info-icon {
+  color: var(--blue);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.info-text {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ── Responsivo NovosCadastro ── */
+@media (max-width: 900px) {
+  .cadastro-grid   { grid-template-columns: 1fr; }
+  .docs-col        { order: -1; } /* docs acima do form em mobile */
+}
+
+@media (max-width: 768px) {
+  .fields-grid     { grid-template-columns: 1fr; }
+  .form-actions    { flex-direction: column; }
+  .form-actions .btn-primary,
+  .form-actions .btn-secondary { width: 100%; justify-content: center; }
+}
+
+@media (max-width: 480px) {
+  .form-card       { padding: 16px; }
+  .docs-card       { padding: 14px; }
+}

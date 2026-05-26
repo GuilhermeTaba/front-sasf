@@ -1,0 +1,331 @@
+/* STAT ROW */
+.pa-stats-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.pa-stat-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  border-top: 3px solid transparent;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.07);
+  min-width: 150px;
+  flex: 1;
+}
+.pa-stat-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  padding-top: 2px;
+}
+.pa-stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-top: 10px;
+}
+
+/* TABLE */
+.pa-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.pa-table thead tr {
+  background: #f8faff;
+  border-bottom: 1px solid var(--border);
+}
+.pa-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+/* User cell */
+.pa-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pa-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.pa-user-info {
+  display: flex;
+  flex-direction: column;
+}
+.pa-user-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+.pa-user-id {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: monospace;
+}
+
+/* ── Badge na tab Permissões ── */
+.pa-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 20px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: 6px;
+  line-height: 1;
+}
+
+/* ── Wrapper da aba Permissões ── */
+.pa-perm-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+  overflow: hidden;
+}
+
+/* Faixa de aviso no topo */
+.pa-perm-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 20px;
+  background: #f0f4ff;
+  border-bottom: 1.5px solid #dbeafe;
+  font-size: 12.5px;
+  color: #1d4ed8;
+}
+
+.pa-perm-banner span:nth-child(2) {
+  flex: 1;
+}
+
+.pa-perm-badge {
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+/* Lista de cards de solicitação */
+.pa-solicit-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Card individual */
+.pa-solicit-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f4fc;
+  transition: background 0.12s;
+}
+
+.pa-solicit-card:last-child {
+  border-bottom: none;
+}
+
+.pa-solicit-card:hover {
+  background: #fafbff;
+}
+
+.pa-solicit-card--done {
+  opacity: 0.6;
+}
+
+/* Lado esquerdo */
+.pa-solicit-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.pa-solicit-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.pa-solicit-email {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.pa-solicit-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.pa-solicit-cargo {
+  background: #f0f4ff;
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.pa-solicit-sep {
+  color: #d1d5db;
+  font-size: 12px;
+}
+
+.pa-solicit-data {
+  font-size: 11.5px;
+  color: #9ca3af;
+}
+
+/* Lado direito: botões ou status */
+.pa-solicit-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Status chips ── */
+.pa-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pa-status--pendente  { background: #fef3c7; color: #92400e; }
+.pa-status--aprovado  { background: #dcfce7; color: #166534; }
+.pa-status--rejeitado { background: #fee2e2; color: #991b1b; }
+
+/* ── Botões Aprovar / Rejeitar ── */
+.pa-btn-aprovar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #dcfce7;
+  border: 1.5px solid #86efac;
+  color: #166534;
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.14s, transform 0.12s;
+  white-space: nowrap;
+}
+
+.pa-btn-aprovar:hover {
+  background: #bbf7d0;
+  transform: translateY(-1px);
+}
+
+.pa-btn-rejeitar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #fee2e2;
+  border: 1.5px solid #fca5a5;
+  color: #991b1b;
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.14s, transform 0.12s;
+  white-space: nowrap;
+}
+
+.pa-btn-rejeitar:hover {
+  background: #fecaca;
+  transform: translateY(-1px);
+}
+
+/* ── Estado vazio ── */
+.pa-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 48px 0;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+/* ── Responsivo PainelAdmin ── */
+@media (max-width: 768px) {
+  /* Stats cards — 2 por linha */
+  .pa-stats-row { gap: 8px; }
+  .pa-stat-card { min-width: 140px; padding: 12px 14px; }
+  .pa-stat-value { font-size: 22px; }
+
+  /* Esconde e-mail e último acesso na tabela */
+  .pa-table th:nth-child(2),
+  .pa-table td:nth-child(2),
+  .pa-table th:nth-child(4),
+  .pa-table td:nth-child(4) { display: none; }
+
+  /* Cards de solicitação empilham */
+  .pa-solicit-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+  .pa-solicit-right {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+  .pa-btn-aprovar,
+  .pa-btn-rejeitar { flex: 1; justify-content: center; }
+
+  /* Banner de permissões */
+  .pa-perm-banner { flex-wrap: wrap; gap: 6px; }
+}
+
+@media (max-width: 480px) {
+  .pa-stats-row { display: grid; grid-template-columns: 1fr 1fr; }
+  .pa-stat-card { min-width: 0; }
+}

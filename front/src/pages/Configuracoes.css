@@ -1,0 +1,45 @@
+.page-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+  margin-bottom: 22px;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.config-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: background .14s;
+}
+.config-card:hover { background: #f8faff; }
+
+.config-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.config-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.config-desc {
+  font-size: 12px;
+  color: var(--muted);
+}
+.config-arrow {
+  margin-left: auto;
+  font-size: 18px;
+  color: var(--muted);
+}
