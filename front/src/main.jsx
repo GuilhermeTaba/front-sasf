@@ -11,8 +11,13 @@ import PainelAdmin      from './components/pages/PainelAdmin/PainelAdmin.jsx'
 import NovoAtendimento  from './components/pages/NovoAtendimento/NovoAtendimento.jsx'
 import Agenda           from './components/pages/Agenda/Agenda.jsx'
 import DetalhesFamilia  from './components/pages/DetalhesFamilia/DetalhesFamilia.jsx'
-import FichaAtualizacao from './components/pages/FichaAtualizacao/FichaAtualizacao.jsx'
-import TermoImagem      from './components/pages/TermoImagem/TermoImagem.jsx'
+import FichaAtualizacao        from './components/pages/FichaAtualizacao/FichaAtualizacao.jsx'
+import TermoImagem             from './components/pages/TermoImagem/TermoImagem.jsx'
+
+import FichaVisitaDomiciliar      from './components/pages/FichaVisitaDomiciliar/FichaVisitaDomiciliar.jsx'
+import PlanoDesenvolvimento       from './components/pages/PlanoDesenvolvimento/PlanoDesenvolvimento.jsx'
+import PlanoDesenvolvimentoPDU    from './components/pages/PlanoDesenvolvimentoPDU/PlanoDesenvolvimentoPDU.jsx'
+import FolhaProsseguimento        from './components/pages/FolhaProsseguimento/FolhaProsseguimento.jsx'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
@@ -20,14 +25,20 @@ createRoot(document.getElementById('root')).render(
         <Route path="/"                   element={<Login />} />
         <Route path="/dashboard"          element={<Dashboard />} />
         <Route path="/familias"           element={<Familias />} />
-        <Route path="/novo-cadastro"      element={<NovosCadastro />} />
+        <Route path="/novo-cadastro"        element={<NovosCadastro />} />
+        <Route path="/novo-cadastro/:id"   element={<NovosCadastro />} />
         <Route path="/atendimentos"       element={<Atendimentos />} />
         <Route path="/novo-atendimento"   element={<NovoAtendimento />} />
         <Route path="/agenda"             element={<Agenda />} />
         <Route path="/painel-admin"          element={<PainelAdmin />} />
         <Route path="/detalhes-familia/:id"   element={<DetalhesFamilia />} />
-        <Route path="/ficha-atualizacao/:id" element={<FichaAtualizacao />} />
-        <Route path="/termo-imagem/:id"      element={<TermoImagem />} />
+        <Route path="/ficha-atualizacao/:id"                      element={<FichaAtualizacao />} />
+        <Route path="/termo-imagem/:id"                            element={<TermoImagem />} />
+
+        <Route path="/ficha-visita/:id"                            element={<FichaVisitaDomiciliar />} />
+        <Route path="/plano-desenvolvimento/:id"                   element={<PlanoDesenvolvimento />} />
+        <Route path="/plano-pdu/:id"                               element={<PlanoDesenvolvimentoPDU />} />
+        <Route path="/folha-prosseguimento/:id"                    element={<FolhaProsseguimento />} />
         <Route path="*"                      element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

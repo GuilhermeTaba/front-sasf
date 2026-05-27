@@ -1,0 +1,127 @@
+/* ── tipo de beneficiário ── */
+.pdu-tipo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.pdu-tipo-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+.pdu-tipo-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  transition: all .15s;
+}
+
+.pdu-tipo-opt input { display: none; }
+
+.pdu-tipo-opt--on {
+  border-color: #e11d48;
+  background: #fff1f2;
+  color: #e11d48;
+  font-weight: 600;
+}
+
+/* ── situações de agravo ── */
+.pdu-agravo-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pdu-check-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text);
+  transition: all .15s;
+  width: fit-content;
+}
+
+.pdu-check-opt input { accent-color: #e11d48; }
+
+.pdu-check-opt--on {
+  border-color: #e11d48;
+  background: #fff1f2;
+  color: #e11d48;
+  font-weight: 600;
+}
+
+.pdu-acesso-group {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: #f9fafb;
+}
+
+.pdu-acesso-title {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 10px;
+}
+
+.pdu-acesso-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pdu-outras {
+  margin-top: 4px;
+}
+
+/* ── linhas numeradas de ações ── */
+.pdu-num-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pdu-num-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.pdu-num-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+  min-width: 20px;
+  padding-top: 10px;
+}
+
+.pdu-num-textarea {
+  flex: 1;
+}
+
+@media (max-width: 600px) {
+  .pdu-tipo-row { gap: 6px; }
+  .pdu-tipo-opt { padding: 5px 10px; font-size: 12px; }
+}

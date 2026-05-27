@@ -1,0 +1,47 @@
+/* ── análise diagnóstica ── */
+.pd-analise-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pd-analise-item {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+.pd-analise-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  padding-top: 10px;
+}
+
+/* ── tabela fl.2/2 ── */
+.pd-tbl-area {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #e5eaf5;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  min-height: 48px;
+}
+
+.pd-tbl-area:focus {
+  border-color: #0d9488;
+  background: #fff;
+}
+
+@media (max-width: 700px) {
+  .pd-analise-item {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}

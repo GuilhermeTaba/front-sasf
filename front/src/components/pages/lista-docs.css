@@ -1,0 +1,169 @@
+/* ══════════════════════════════════════════════════════
+   LISTA DE DOCUMENTOS — estilos compartilhados
+══════════════════════════════════════════════════════ */
+
+/* breadcrumb (self-contained) */
+.breadcrumb { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-size: 12.5px; }
+.bc-link { color: var(--blue); text-decoration: none; font-weight: 500; }
+.bc-link:hover { text-decoration: underline; }
+.bc-sep { color: var(--muted); }
+.bc-current { color: var(--muted); font-weight: 500; }
+
+/* cabeçalho da seção */
+.lista-doc-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.lista-doc-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.lista-doc-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* botão nova ficha */
+.lista-doc-nova-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  transition: opacity .15s, transform .15s;
+  flex-shrink: 0;
+}
+
+.lista-doc-nova-btn:hover {
+  opacity: .88;
+  transform: translateY(-1px);
+}
+
+/* card da lista */
+.lista-doc-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 32px;
+}
+
+.lista-doc-empty {
+  padding: 56px 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* item da lista */
+.lista-doc-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.lista-doc-item:last-child {
+  border-bottom: none;
+}
+
+.lista-doc-item:hover {
+  background: #f9fafb;
+}
+
+.lista-doc-item-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.lista-doc-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.lista-doc-item-titulo {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 5px;
+}
+
+.lista-doc-item-meta {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.lista-doc-item-meta span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* status badge */
+.lista-doc-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* botão visualizar */
+.lista-doc-ver-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1.5px solid;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background .15s;
+  white-space: nowrap;
+}
+
+.lista-doc-ver-btn:hover {
+  opacity: .8;
+}
+
+/* ── responsivo ── */
+@media (max-width: 640px) {
+  .lista-doc-item { padding: 14px 16px; gap: 12px; }
+  .lista-doc-ver-btn .lista-doc-ver-label { display: none; }
+  .lista-doc-section-header { flex-direction: column; align-items: stretch; }
+  .lista-doc-nova-btn { justify-content: center; }
+  .lista-doc-status { display: none; }
+}
