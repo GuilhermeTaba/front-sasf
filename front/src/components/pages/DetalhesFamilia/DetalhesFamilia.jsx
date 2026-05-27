@@ -27,7 +27,19 @@ const STATUS_FICHA = {
   assinado: { bg: '#dcfce7', color: '#166534', label: 'Assinado' },
 };
 
+const STATUS_ATENDIMENTO = {
+  concluido: { bg: '#dcfce7', color: '#166534', label: 'Concluído' },
+  andamento: { bg: '#dbeafe', color: '#1d4ed8', label: 'Em andamento' },
+  pendente:  { bg: '#fef3c7', color: '#92400e', label: 'Pendente' },
+};
+
 const LISTAS = {
+  atendimentos: [
+    { id: 1, data: '12/05/2025', tecnico: 'Ana Silva',     tipo: 'Visita domiciliar', status: 'concluido' },
+    { id: 2, data: '03/04/2025', tecnico: 'Ana Silva',     tipo: 'Acompanhamento',    status: 'concluido' },
+    { id: 3, data: '15/02/2025', tecnico: 'Carlos Mendes', tipo: 'Entrevista social', status: 'concluido' },
+    { id: 4, data: '07/01/2025', tecnico: 'Ana Silva',     tipo: 'Encaminhamento',    status: 'andamento' },
+  ],
   cadastral: [
     { id: 1, data: '15/03/2024', tecnico: 'Ana Silva',     status: 'completo' },
     { id: 2, data: '08/11/2023', tecnico: 'Ana Silva',     status: 'completo' },
@@ -89,6 +101,23 @@ const DetalhesFamilia = () => {
 
   const OPCOES = [
     {
+      key:          'atendimentos',
+      color:        '#0891b2',
+      bg:           '#ecfeff',
+      border:       '#a5f3fc',
+      title:        'Histórico de Atendimentos',
+      listTitle:    'Histórico de Atendimentos',
+      itemLabel:    'Atendimento',
+      novaLabel:    'Novo Atendimento',
+      novaPath:     `/novo-atendimento`,
+      statusMap:    STATUS_ATENDIMENTO,
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+        </svg>
+      ),
+    },
+    {
       key:          'cadastral',
       color:        '#1d4ed8',
       bg:           '#eff6ff',
@@ -100,6 +129,7 @@ const DetalhesFamilia = () => {
       itemLabel:    'Ficha Cadastral',
       novaLabel:    'Nova Ficha Cadastral',
       novaPath:     `/novo-cadastro/${familia.id}`,
+      statusMap:    STATUS_FICHA,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
@@ -121,6 +151,7 @@ const DetalhesFamilia = () => {
       itemLabel:    'Ficha de Atualização',
       novaLabel:    'Nova Ficha de Atualização',
       novaPath:     `/ficha-atualizacao/${familia.id}`,
+      statusMap:    STATUS_FICHA,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="23 4 23 10 17 10"/>
@@ -139,6 +170,7 @@ const DetalhesFamilia = () => {
       itemLabel:    'Termo de Imagem',
       novaLabel:    'Novo Termo',
       novaPath:     `/termo-imagem/${familia.id}`,
+      statusMap:    STATUS_FICHA,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -157,6 +189,7 @@ const DetalhesFamilia = () => {
       itemLabel:    'Ficha de Visita',
       novaLabel:    'Nova Visita Domiciliar',
       novaPath:     `/ficha-visita/${familia.id}`,
+      statusMap:    STATUS_FICHA,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H14v-5h-4v5H4a1 1 0 01-1-1V9.5z"/>
@@ -173,6 +206,7 @@ const DetalhesFamilia = () => {
       itemLabel:    'Plano de Desenvolvimento',
       novaLabel:    'Novo Plano de Desenvolvimento',
       novaPath:     `/plano-desenvolvimento/${familia.id}`,
+      statusMap:    STATUS_FICHA,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
@@ -193,6 +227,7 @@ const DetalhesFamilia = () => {
       itemLabel:    'PDU',
       novaLabel:    'Novo PDU',
       novaPath:     `/plano-pdu/${familia.id}`,
+      statusMap:    STATUS_FICHA,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
@@ -212,6 +247,7 @@ const DetalhesFamilia = () => {
       itemLabel:    'Folha de Prosseguimento',
       novaLabel:    'Nova Folha de Prosseguimento',
       novaPath:     `/folha-prosseguimento/${familia.id}`,
+      statusMap:    STATUS_FICHA,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
@@ -320,7 +356,7 @@ const DetalhesFamilia = () => {
               <div className="lista-doc-empty">Nenhum registro encontrado.</div>
             ) : (
               itens.map((item, i) => {
-                const st = STATUS_FICHA[item.status];
+                const st = opcaoAtiva.statusMap[item.status];
                 return (
                   <div
                     key={item.id}
@@ -336,7 +372,10 @@ const DetalhesFamilia = () => {
 
                     <div className="lista-doc-item-info">
                       <div className="lista-doc-item-titulo">
-                        {opcaoAtiva.itemLabel} #{String(i + 1).padStart(2, '0')} — {familia.responsavel}
+                        {item.tipo
+                          ? `${opcaoAtiva.itemLabel} #${String(i + 1).padStart(2, '0')} — ${item.tipo}`
+                          : `${opcaoAtiva.itemLabel} #${String(i + 1).padStart(2, '0')} — ${familia.responsavel}`
+                        }
                       </div>
                       <div className="lista-doc-item-meta">
                         <span><CalIcon /> {item.data}</span>
