@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import "./login.css";
-import sasfImg from "../assets/Sasf.avif";
-import unasLogo from "../assets/unas_logo.png";
-import sasfLogo from "../assets/sasf_logo.jpg";
+import "./Login.css";
+import sasfImg from "../../../assets/Sasf.avif";
+import unasLogo from "../../../assets/unas_logo.png";
+import sasfLogo from "../../../assets/sasf_logo.jpg";
 
 const Login = () => {
   const navigate = useNavigate();

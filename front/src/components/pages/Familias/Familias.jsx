@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import Layout from '../components/Layout';
+import Layout from '../../Layout';
 import './Familias.css';
 
 const FAMILIAS = [
@@ -156,7 +156,12 @@ const Familias = () => {
                       </span>
                     </td>
                     <td>
-                      <button className="action-edit">Ver detalhes</button>
+                      <button
+                        className="action-edit"
+                        onClick={() => navigate(`/detalhes-familia/${f.id}`)}
+                      >
+                        Ver detalhes
+                      </button>
                     </td>
                   </tr>
                 ))}

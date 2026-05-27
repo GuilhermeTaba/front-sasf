@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router';
-import Layout from '../components/Layout';
+import Layout from '../../Layout';
 import './NovoAtendimento.css';
 
 const RESPONSAVEIS = [

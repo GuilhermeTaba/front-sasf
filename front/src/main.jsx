@@ -2,14 +2,17 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router'
 import './index.css'
-import Login         from './login/login.jsx'
-import Dashboard     from './pages/Dashboard.jsx'
-import Familias      from './pages/Familias.jsx'
-import NovosCadastro from './pages/NovosCadastro.jsx'
-import Atendimentos  from './pages/Atendimentos.jsx'
-import PainelAdmin      from './pages/PainelAdmin.jsx'
-import NovoAtendimento  from './pages/NovoAtendimento.jsx'
-import Agenda           from './pages/Agenda.jsx'
+import Login            from './components/pages/Login/Login.jsx'
+import Dashboard        from './components/pages/Dashboard/Dashboard.jsx'
+import Familias         from './components/pages/Familias/Familias.jsx'
+import NovosCadastro    from './components/pages/NovoCadastro/NovosCadastro.jsx'
+import Atendimentos     from './components/pages/Atendimentos/Atendimentos.jsx'
+import PainelAdmin      from './components/pages/PainelAdmin/PainelAdmin.jsx'
+import NovoAtendimento  from './components/pages/NovoAtendimento/NovoAtendimento.jsx'
+import Agenda           from './components/pages/Agenda/Agenda.jsx'
+import DetalhesFamilia  from './components/pages/DetalhesFamilia/DetalhesFamilia.jsx'
+import FichaAtualizacao from './components/pages/FichaAtualizacao/FichaAtualizacao.jsx'
+import TermoImagem      from './components/pages/TermoImagem/TermoImagem.jsx'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
@@ -21,8 +24,11 @@ createRoot(document.getElementById('root')).render(
         <Route path="/atendimentos"       element={<Atendimentos />} />
         <Route path="/novo-atendimento"   element={<NovoAtendimento />} />
         <Route path="/agenda"             element={<Agenda />} />
-        <Route path="/painel-admin"       element={<PainelAdmin />} />
-        <Route path="*"                  element={<Navigate to="/" replace />} />
+        <Route path="/painel-admin"          element={<PainelAdmin />} />
+        <Route path="/detalhes-familia/:id"   element={<DetalhesFamilia />} />
+        <Route path="/ficha-atualizacao/:id" element={<FichaAtualizacao />} />
+        <Route path="/termo-imagem/:id"      element={<TermoImagem />} />
+        <Route path="*"                      element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
