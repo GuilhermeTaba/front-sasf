@@ -11,19 +11,38 @@ const Login = () => {
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [erro, setErro] = useState("");
+  const [carregando, setCarregando] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email.trim()) {
       setErro("Informe o e-mail.");
       return;
     }
-    if (senha.length < 4) {
+    if (!senha) {
       setErro("Informe sua senha.");
       return;
     }
     setErro("");
-    navigate("/dashboard");
+    setCarregando(true);
+    try {
+      const response = await fetch("http://localhost:8080/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, senha }),
+      });
+      if (!response.ok) {
+        setErro("Email ou senha incorretos.");
+        return;
+      }
+      const data = await response.json();
+      localStorage.setItem("token", data.token);
+      navigate("/dashboard");
+    } catch {
+      setErro("Erro ao conectar com o servidor.");
+    } finally {
+      setCarregando(false);
+    }
   };
 
   return (
@@ -89,8 +108,8 @@ const Login = () => {
             {erro && <p className="msg-erro">{erro}</p>}
 
             {/* Botão */}
-            <button type="submit" className="btn-entrar">
-              Login
+            <button type="submit" className="btn-entrar" disabled={carregando}>
+              {carregando ? "Entrando..." : "Login"}
             </button>
           </form>
 
