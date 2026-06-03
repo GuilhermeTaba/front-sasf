@@ -26,10 +26,10 @@ const Login = () => {
     setErro("");
     setCarregando(true);
     try {
-      const response = await fetch("http://localhost:8080/auth/login", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, senha }),
+        body: JSON.stringify({ email, senha: Number(senha) }),
       });
       if (!response.ok) {
         setErro("Email ou senha incorretos.");
@@ -37,7 +37,8 @@ const Login = () => {
       }
       const data = await response.json();
       localStorage.setItem("token", data.token);
-      localStorage.setItem("cargo",data.cargo);
+      const payload = JSON.parse(atob(data.token.split(".")[1]));
+      localStorage.setItem("cargo", payload.cargo);
       navigate("/dashboard");
     } catch {
       setErro("Erro ao conectar com o servidor.");

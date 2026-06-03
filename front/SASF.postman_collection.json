@@ -131,7 +131,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer ",
+                "value": "Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJndWlAZ21haWwuY29tIiwiY2FyZ28iOiJPUklFTlRBRE9SIiwiaWF0IjoxNzgwNTIyNjQzLCJleHAiOjE3ODA2MDkwNDN9.gO164Lw4VO8fijGf2HVcH83Cef4xmwACgBWV8P1tnA7OViQ_Q0TCPh0oPNovXJ9A",
                 "type": "text"
               }
             ],
@@ -157,16 +157,28 @@
           "_postman_previewlanguage": null,
           "header": [
             {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Vary",
+              "value": "Access-Control-Request-Method"
+            },
+            {
+              "key": "Vary",
+              "value": "Access-Control-Request-Headers"
+            },
+            {
               "key": "Content-Type",
               "value": "application/json"
             },
             {
               "key": "Content-Length",
-              "value": "29"
+              "value": "60"
             },
             {
               "key": "Date",
-              "value": "Tue, 02 Jun 2026 22:49:59 GMT"
+              "value": "Wed, 03 Jun 2026 21:37:40 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -178,7 +190,7 @@
             }
           ],
           "cookie": [],
-          "body": "{\n    \"valido\": false,\n    \"email\": null\n}"
+          "body": "{\n    \"valido\": true,\n    \"email\": \"gui@gmail.com\",\n    \"cargo\": \"ORIENTADOR\"\n}"
         }
       ]
     },

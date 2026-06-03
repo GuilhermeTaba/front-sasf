@@ -30,10 +30,10 @@ const CriarConta = () => {
 
     setCarregando(true);
     try {
-      const response = await fetch("http://localhost:8080/usuarios", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome: form.nome, email: form.email, cargo: form.cargo, senha: form.senha }),
+        body: JSON.stringify({ nome: form.nome, email: form.email, cargo: form.cargo, senha: Number(form.senha) }),
       });
       if (!response.ok) {
         const msg = await response.text().catch(() => "");
