@@ -18,6 +18,7 @@ import FichaVisitaDomiciliar      from './components/pages/FichaVisitaDomiciliar
 import PlanoDesenvolvimento       from './components/pages/PlanoDesenvolvimento/PlanoDesenvolvimento.jsx'
 import PlanoDesenvolvimentoPDU    from './components/pages/PlanoDesenvolvimentoPDU/PlanoDesenvolvimentoPDU.jsx'
 import FolhaProsseguimento        from './components/pages/FolhaProsseguimento/FolhaProsseguimento.jsx'
+import CriarConta                from './components/pages/CriarConta/CriarConta.jsx'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
@@ -39,6 +40,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/plano-desenvolvimento/:id"                   element={<PlanoDesenvolvimento />} />
         <Route path="/plano-pdu/:id"                               element={<PlanoDesenvolvimentoPDU />} />
         <Route path="/folha-prosseguimento/:id"                    element={<FolhaProsseguimento />} />
+        <Route path="/criar-conta"            element={<CriarConta />} />
         <Route path="*"                      element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

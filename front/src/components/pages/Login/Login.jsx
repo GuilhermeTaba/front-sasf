@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
 import "./Login.css";
 import sasfImg from "../../../assets/Sasf.avif";
 import unasLogo from "../../../assets/unas_logo.png";
@@ -37,6 +37,7 @@ const Login = () => {
       }
       const data = await response.json();
       localStorage.setItem("token", data.token);
+      localStorage.setItem("cargo",data.cargo);
       navigate("/dashboard");
     } catch {
       setErro("Erro ao conectar com o servidor.");
@@ -116,7 +117,7 @@ const Login = () => {
           {/* Rodapé */}
           <p className="rodape-form">
             Não tem uma conta?{" "}
-            <a href="#">Crie uma</a>
+            <Link to="/criar-conta">Crie uma</Link>
           </p>
         </div>
       </div>
