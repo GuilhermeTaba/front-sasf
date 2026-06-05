@@ -1,6 +1,11 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router'
+
+const AdminRoute = ({ element }) => {
+  const cargo = localStorage.getItem("cargo");
+  return cargo === "ADMIN" ? element : <Navigate to="/dashboard" replace />;
+};
 import './index.css'
 import Login            from './components/pages/Login/Login.jsx'
 import Dashboard        from './components/pages/Dashboard/Dashboard.jsx'
@@ -31,7 +36,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/atendimentos"       element={<Atendimentos />} />
         <Route path="/novo-atendimento"   element={<NovoAtendimento />} />
         <Route path="/agenda"             element={<Agenda />} />
-        <Route path="/painel-admin"          element={<PainelAdmin />} />
+        <Route path="/painel-admin"          element={<AdminRoute element={<PainelAdmin />} />} />
         <Route path="/detalhes-familia/:id"   element={<DetalhesFamilia />} />
         <Route path="/ficha-atualizacao/:id"                      element={<FichaAtualizacao />} />
         <Route path="/termo-imagem/:id"                            element={<TermoImagem />} />
