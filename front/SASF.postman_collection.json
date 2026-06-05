@@ -131,7 +131,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJndWlAZ21haWwuY29tIiwiY2FyZ28iOiJPUklFTlRBRE9SIiwiaWF0IjoxNzgwNTIyNjQzLCJleHAiOjE3ODA2MDkwNDN9.gO164Lw4VO8fijGf2HVcH83Cef4xmwACgBWV8P1tnA7OViQ_Q0TCPh0oPNovXJ9A",
+                "value": "Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJndWlAZ21haWwuY29tIiwiaWQiOjMsImNhcmdvIjoiT1JJRU5UQURPUiIsImlhdCI6MTc4MDYxODg5MSwiZXhwIjoxNzgwNzA1MjkxfQ.09Ge60g5v_qSeooTwnqyjMi4gfvNzRDbqwLe3HXAfbVnMpUjbLXw7xaCap_bzGmD",
                 "type": "text"
               }
             ],
@@ -174,11 +174,11 @@
             },
             {
               "key": "Content-Length",
-              "value": "60"
+              "value": "67"
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Jun 2026 21:37:40 GMT"
+              "value": "Fri, 05 Jun 2026 00:23:00 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -190,7 +190,7 @@
             }
           ],
           "cookie": [],
-          "body": "{\n    \"valido\": true,\n    \"email\": \"gui@gmail.com\",\n    \"cargo\": \"ORIENTADOR\"\n}"
+          "body": "{\n    \"id\": 3,\n    \"valido\": true,\n    \"email\": \"gui@gmail.com\",\n    \"cargo\": \"ORIENTADOR\"\n}"
         }
       ]
     },
@@ -284,6 +284,76 @@
         }
       },
       "response": []
+    },
+    {
+      "name": "getUsuarios",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": [
+        {
+          "name": "getUsuarios",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://localhost:8080/usuarios",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "usuarios"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Vary",
+              "value": "Access-Control-Request-Method"
+            },
+            {
+              "key": "Vary",
+              "value": "Access-Control-Request-Headers"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Content-Length",
+              "value": "324"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 05 Jun 2026 00:04:40 GMT"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=60"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            }
+          ],
+          "cookie": [],
+          "body": "[\n    {\n        \"aprovado\": true,\n        \"ativo\": true,\n        \"cargo\": \"ADMIN\",\n        \"email\": \"admin@example.com\",\n        \"id\": 1,\n        \"nome\": \"admin Teste\"\n    },\n    {\n        \"aprovado\": true,\n        \"ativo\": true,\n        \"cargo\": \"TECNICO\",\n        \"email\": \"tecnico@example.com\",\n        \"id\": 2,\n        \"nome\": \"tecnico Teste\"\n    },\n    {\n        \"aprovado\": true,\n        \"ativo\": true,\n        \"cargo\": \"ORIENTADOR\",\n        \"email\": \"gui@gmail.com\",\n        \"id\": 3,\n        \"nome\": \"gui\",\n        \"tecnico\": null\n    }\n]"
+        }
+      ]
     }
   ]
 }

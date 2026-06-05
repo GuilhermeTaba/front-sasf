@@ -41,6 +41,7 @@ const Login = () => {
       localStorage.setItem("token", data.token);
       const payload = JSON.parse(atob(data.token.split(".")[1]));
       localStorage.setItem("cargo", payload.cargo);
+      localStorage.setItem("userId", payload.id);
       navigate("/dashboard");
     } catch {
       setErro("Erro ao conectar com o servidor.");
