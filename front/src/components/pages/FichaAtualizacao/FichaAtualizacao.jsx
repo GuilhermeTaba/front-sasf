@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useParams, useNavigate } from 'react-router';
 import Layout from '../../Layout';
 import './FichaAtualizacao.css';
 
@@ -25,8 +25,25 @@ const SectionTitle = ({ children }) => (
   </div>
 );
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+const parseDateBR = (str) => {
+  if (!str) return null;
+  const p = str.split('/');
+  if (p.length === 3) return `${p[2]}-${p[1]}-${p[0]}`;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  return null;
+};
+
+const MESES_NUM_AT = {
+  'Janeiro': 1, 'Fevereiro': 2, 'Março': 3, 'Abril': 4,
+  'Maio': 5, 'Junho': 6, 'Julho': 7, 'Agosto': 8,
+  'Setembro': 9, 'Outubro': 10, 'Novembro': 11, 'Dezembro': 12,
+};
+
 const FichaAtualizacao = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const familia = FAMILIAS.find(f => f.id === Number(id)) || FAMILIAS[0];
 
   const [form, setForm] = useState({
@@ -66,14 +83,110 @@ const FichaAtualizacao = () => {
   });
 
   const [membros, setMembros] = useState(Array.from({ length: 6 }, emptyMembro));
+  const [saving, setSaving] = useState(false);
+  const [error, setError]   = useState('');
+
+  const maskDate = v => {
+    const d = v.replace(/\D/g, '').slice(0, 8);
+    if (d.length <= 2) return d;
+    if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
+    return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`;
+  };
+
+  const DATE_FIELDS = new Set(['nascResp', 'dt']);
 
   const handle = e => {
     const { name, value } = e.target;
-    setForm(f => ({ ...f, [name]: value }));
+    setForm(f => ({ ...f, [name]: DATE_FIELDS.has(name) ? maskDate(value) : value }));
   };
 
   const handleMembro = (idx, field, value) =>
     setMembros(m => m.map((mb, i) => i === idx ? { ...mb, [field]: value } : mb));
+
+  const handleSubmit = async () => {
+    setSaving(true);
+    setError('');
+    const userId = Number(localStorage.getItem('userId')) || null;
+    const membrosPayload = membros
+      .filter(m => m.nome)
+      .map(m => ({
+        nome: m.nome,
+        dataNascimento: parseDateBR(m.nascimento),
+        escola: m.escola,
+        serie: m.serie ? parseInt(m.serie) : null,
+        m: m.sexo === 'M',
+        t: m.sexo === 'T',
+        n: m.sexo === 'N',
+      }));
+    const num = (v) => v !== '' ? Number(v) : null;
+    try {
+      const res = await fetch(`${API_URL}/familias/${id}/atualizacoes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          numeroMatricula: form.matricula,
+          nomeRepresentanteFamilia: familia.responsavel,
+          nis: form.nis,
+          cpf: form.cpf,
+          dataNascimento: parseDateBR(form.nascResp),
+          membrosAtualizados: membrosPayload,
+          zeroACinco: num(form.fx0a5),
+          seisAQuatorze: num(form.fx6a14),
+          quinzeADezessete: num(form.fx15a17),
+          dezoitoAVinteENove: num(form.fx18a29),
+          trintaACinquentaENove: num(form.fx30a59),
+          sessentaMais: num(form.fx60m),
+          pcd: num(form.nPcd),
+          bpcIdoso: num(form.bpcIdoso),
+          bpcPcd: num(form.bpcPcd),
+          bolsaFamilia: num(form.bolsaFamilia),
+          condicionalidades: form.condicionalidades,
+          status: form.statusBenef,
+          aguardandoVagaEmei: num(form.agCei0a5),
+          frequentaCei: num(form.freCei),
+          frequentaEmei: num(form.freEmei),
+          foraEscola: num(form.fora6a17),
+          aguardandoVagaEscola: num(form.agVaga6a17),
+          ensinoFundamental: num(form.ensFund),
+          ensinoMedio: num(form.ensMedio),
+          eja: num(form.ejaOuSimilar),
+          pcdEscola: num(form.pcdEspecial),
+          cursoSuperior: num(form.cursoSup),
+          cca: num(form.cca),
+          cj: num(form.ci),
+          cedesp: num(form.cedesp),
+          nci: num(form.nci),
+          naispd: num(form.naispd),
+          vacinaAtualizada: num(form.vacinados),
+          mulheresGestantes: num(form.gestantes),
+          gestantesPreNatal: num(form.gestantesPreNatal),
+          situacaoRua: num(form.sitRua),
+          trabalhoInfantil: num(form.trabInfantil),
+          dependencia: num(form.alcoolDrogas),
+          adolescenteMse: num(form.adolMSEAberto),
+          adolescenteInternacao: num(form.adolMSEInternacao),
+          adultoPrivado: num(form.adultoPrivLiberdade),
+          criancasSaica: num(form.criancaSaica),
+          idosoAcolhimento: num(form.idosoAcolhimento),
+          observacoes: form.observacoes,
+          pdf: form.tipoProntuario === 'PDF',
+          pdu: form.tipoProntuario === 'PDU',
+          dt: form.dt || null,
+          tecnicoId: userId,
+          responsavel: form.responsavel,
+        }),
+      });
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      navigate(`/detalhes-familia/${id}`);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const NumInput = ({ name, placeholder = '0' }) => (
     <input
@@ -167,7 +280,7 @@ const FichaAtualizacao = () => {
                   </td>
                   <td>
                     <input className="fa-tbl-input fa-tbl-xs" value={m.nascimento}
-                      onChange={e => handleMembro(i, 'nascimento', e.target.value)}
+                      onChange={e => handleMembro(i, 'nascimento', maskDate(e.target.value))}
                       placeholder="dd/mm/aaaa" />
                   </td>
                   <td>
@@ -394,15 +507,16 @@ const FichaAtualizacao = () => {
         </div>
 
         {/* ── AÇÕES ── */}
+        {error && <p style={{ color: '#dc2626', margin: '8px 0' }}>{error}</p>}
         <div className="form-actions">
           <Link to={`/detalhes-familia/${familia.id}`} className="btn-secondary">← Voltar</Link>
           <button className="btn-secondary" onClick={() => {}}>Salvar rascunho</button>
-          <button className="btn-primary btn-success">
+          <button className="btn-primary btn-success" onClick={handleSubmit} disabled={saving}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
               strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            Salvar ficha de atualização
+            {saving ? 'Salvando…' : 'Salvar ficha de atualização'}
           </button>
         </div>
 

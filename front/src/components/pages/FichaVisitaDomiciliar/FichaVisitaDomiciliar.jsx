@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useParams, useNavigate } from 'react-router';
 import Layout from '../../Layout';
 import '../FichaAtualizacao/FichaAtualizacao.css';
 import '../NovoCadastro/NovosCadastro.css';
@@ -21,8 +21,19 @@ const SectionTitle = ({ children }) => (
   </div>
 );
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+const parseDateBR = (str) => {
+  if (!str) return null;
+  const p = str.split('/');
+  if (p.length === 3) return `${p[2]}-${p[1]}-${p[0]}`;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  return null;
+};
+
 const FichaVisitaDomiciliar = () => {
   const { id }   = useParams();
+  const navigate = useNavigate();
   const familia  = FAMILIAS.find(f => f.id === Number(id)) || FAMILIAS[0];
 
   const [form, setForm] = useState({
@@ -38,9 +49,54 @@ const FichaVisitaDomiciliar = () => {
     demandas: '',
   });
 
+  const [saving, setSaving] = useState(false);
+  const [error, setError]   = useState('');
+
+  const maskDate = v => {
+    const d = v.replace(/\D/g, '').slice(0, 8);
+    if (d.length <= 2) return d;
+    if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
+    return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`;
+  };
+
+  const DATE_FIELDS = new Set(['data']);
+
   const handle = e => {
     const { name, value } = e.target;
-    setForm(f => ({ ...f, [name]: value }));
+    setForm(f => ({ ...f, [name]: DATE_FIELDS.has(name) ? maskDate(value) : value }));
+  };
+
+  const handleSubmit = async () => {
+    setSaving(true);
+    setError('');
+    const userId = Number(localStorage.getItem('userId')) || null;
+    try {
+      const res = await fetch(`${API_URL}/familias/${id}/visitas`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          nomeServicoSASF: form.servico,
+          cras: form.cras,
+          tecnicoId: userId,
+          dataPreenchimento: parseDateBR(form.data),
+          nomeRepresentanteFamilia: form.nome,
+          numeroNIS_NIT_NB: form.nis,
+          endereco: form.endereco,
+          objetivoVisita: form.objetivo,
+          pessoasEntrevistadas: form.pessoasPresentes,
+          conteudoFolha: form.demandas,
+        }),
+      });
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      navigate(`/detalhes-familia/${id}`);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -122,15 +178,16 @@ const FichaVisitaDomiciliar = () => {
             placeholder="Registre aqui as demandas apresentadas, orientações dadas e encaminhamentos realizados..." />
         </div>
 
+        {error && <p style={{ color: '#dc2626', margin: '8px 0' }}>{error}</p>}
         <div className="form-actions">
           <Link to={`/detalhes-familia/${familia.id}`} className="btn-secondary">← Voltar</Link>
           <button className="btn-secondary" onClick={() => {}}>Salvar rascunho</button>
-          <button className="btn-primary btn-success">
+          <button className="btn-primary btn-success" onClick={handleSubmit} disabled={saving}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
               strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            Salvar ficha de visita
+            {saving ? 'Salvando…' : 'Salvar ficha de visita'}
           </button>
         </div>
 

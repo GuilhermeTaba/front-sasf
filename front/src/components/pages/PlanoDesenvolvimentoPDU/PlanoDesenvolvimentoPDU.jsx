@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useParams, useNavigate } from 'react-router';
 import Layout from '../../Layout';
 import '../FichaAtualizacao/FichaAtualizacao.css';
 import '../NovoCadastro/NovosCadastro.css';
@@ -56,8 +56,18 @@ const NumRows = ({ label, count, prefix, values, onChange }) => (
   </div>
 );
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+const FAIXA_ETARIA_MAP = {
+  'Idoso': 'IDOSO',
+  'Deficiente Adulto': 'ADULTO',
+  'Criança': 'CRIANCA',
+  'Adolescente': 'ADOLESCENTE',
+};
+
 const PlanoDesenvolvimentoPDU = () => {
   const { id }   = useParams();
+  const navigate = useNavigate();
   const familia  = FAMILIAS.find(f => f.id === Number(id)) || FAMILIAS[0];
 
   const [form, setForm] = useState({
@@ -74,9 +84,11 @@ const PlanoDesenvolvimentoPDU = () => {
     acessoItems: {},
   });
 
-  const [acoesProposta,    setAcoesProposta]    = useState(Array(6).fill(''));
-  const [acoesPactuadas,   setAcoesPactuadas]   = useState(Array(7).fill(''));
-  const [acoesInterseto,   setAcoesInterseto]   = useState(Array(6).fill(''));
+  const [acoesProposta,  setAcoesProposta]  = useState(Array(6).fill(''));
+  const [acoesPactuadas, setAcoesPactuadas] = useState(Array(7).fill(''));
+  const [acoesInterseto, setAcoesInterseto] = useState(Array(6).fill(''));
+  const [saving, setSaving] = useState(false);
+  const [error, setError]   = useState('');
 
   const handle = e => {
     const { name, value } = e.target;
@@ -97,6 +109,65 @@ const PlanoDesenvolvimentoPDU = () => {
 
   const updateArr = (setter, idx, val) =>
     setter(arr => arr.map((v, i) => i === idx ? val : v));
+
+  const handleSubmit = async () => {
+    setSaving(true);
+    setError('');
+    const agravo = form.situacoesAgravo;
+    const acesso = form.acessoItems;
+    const situacaoAgravo = {
+      fragilizacaoVinculosFamiliares: !!agravo.fragVinculos,
+      rompimentoVinculosFamiliares: !!agravo.rompVinculos,
+      confinamento: !!agravo.confinamento,
+      isolamento: !!agravo.isolamento,
+      ausenciaCuidador: !!agravo.ausenciaCuid,
+      violenciaDomestica: !!agravo.violDomestica,
+      semAcessoEducacao: !!acesso.acessoEdu,
+      semAcessoSaude: !!acesso.acessoSaude,
+      semAcessoTransporte: !!acesso.acessoTransp,
+      semAcessoRede: !!acesso.acessoRede,
+      outras: form.acessoOutras || null,
+    };
+    try {
+      const res = await fetch(`${API_URL}/familias/${id}/pdus`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          nomeServicoSASF: form.servico,
+          CAS: form.cas,
+          CRAS: form.cras,
+          nomeBeneficiario: form.beneficiario,
+          faixaEtaria: FAIXA_ETARIA_MAP[form.tipoBenef] || null,
+          nomeRepresentanteFamilia: form.representante,
+          numeroNIS_NIT_NB: form.nis,
+          nomeCuidadorResponsavel: form.responsavelCuidado,
+          nomeTecnico: form.tecnico,
+          sinteseSituacao: form.sintese,
+          situacaoAgravo,
+          acoesPropostas: acoesProposta.filter(Boolean).join('\n'),
+          acoesPactuadas: acoesPactuadas.filter(Boolean).join('\n'),
+          acoesIntersetorais: acoesInterseto.filter(Boolean).join('\n'),
+          itens: [],
+          numeroPlano: null,
+          dataElaboracaoPlano: null,
+          dataValidadePlano: null,
+          dataReavaliacaoPlano: null,
+          dataDesligamento: null,
+          tecnico: form.tecnico,
+          imagemAssinaturaURL: null,
+        }),
+      });
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      navigate(`/detalhes-familia/${id}`);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <Layout>
@@ -229,15 +300,16 @@ const PlanoDesenvolvimentoPDU = () => {
         <NumRows label="Ação intersetorial" count={6} values={acoesInterseto}
           onChange={(i, v) => updateArr(setAcoesInterseto, i, v)} />
 
+        {error && <p style={{ color: '#dc2626', margin: '8px 0' }}>{error}</p>}
         <div className="form-actions">
           <Link to={`/detalhes-familia/${familia.id}`} className="btn-secondary">← Voltar</Link>
           <button className="btn-secondary" onClick={() => {}}>Salvar rascunho</button>
-          <button className="btn-primary btn-success">
+          <button className="btn-primary btn-success" onClick={handleSubmit} disabled={saving}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
               strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            Salvar PDU
+            {saving ? 'Salvando…' : 'Salvar PDU'}
           </button>
         </div>
 

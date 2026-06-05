@@ -1,7 +1,9 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router';
 import Layout from '../../Layout';
 import './NovosCadastro.css';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 const FAMILIAS = [
   { id: 1, responsavel: 'Carlos Oliveira',  tecnico: 'Ana Silva',     regiao: 'Jd. Chico Mendes', membros: 5, tel: '(92) 99878-1234' },
@@ -93,7 +95,7 @@ const NovosCadastro = () => {
   const navigate  = useNavigate();
   const fileInputRef = useRef(null);
 
-  const familia = FAMILIAS.find(f => f.id === Number(id)) || null;
+  const [familia, setFamilia] = useState(null);
 
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [dragOver, setDragOver] = useState(false);
@@ -103,7 +105,7 @@ const NovosCadastro = () => {
     nomeSASF: 'SASF Chico Mendes', cas: '', cras: '',
     nMatricula: '', dataMatricula: '', dataDesligamento: '',
     /* representante */
-    nomeRepresentante: familia?.responsavel || '',
+    nomeRepresentante: '',
     genero: '', nascimento: '', nNIS: '', naturalidade: '',
     corRaca: '', deficiencia: '',
     cpf: '', rg: '', emissao: '', orgaoEmissor: '', uf: '',
@@ -115,8 +117,8 @@ const NovosCadastro = () => {
     profissao: '', ocupacao: '', situacaoEmprego: '', renda: '',
     /* endereço */
     endereco: '', numEnd: '', complemento: '', cep: '',
-    bairro: familia?.regiao || '', distrito: '',
-    telResid: '', telCel: familia?.tel || '', telefone: '',
+    bairro: '', distrito: '',
+    telResid: '', telCel: '', telefone: '',
     pontoReferencia: '',
     /* moradia */
     condicoesMoradia: '', numCommodores: '', valorAluguel: '',
@@ -125,11 +127,163 @@ const NovosCadastro = () => {
     recebeTransferencia: '', transferenciasQuais: [],
     recebeBPC: '', bpcQuais: [],
     /* demanda / técnico */
-    demanda: '', tecnico: familia?.tecnico || '', dataTecnico: '',
+    demanda: '', tecnico: '', dataTecnico: '',
   });
+
+  useEffect(() => {
+    if (!id) return;
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+
+    const toDateBR = iso => {
+      if (!iso) return '';
+      const p = iso.split('-');
+      return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
+    };
+
+    // Busca dados básicos da família para breadcrumb / fallback
+    fetch(`${API_URL}/familias/${id}`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        setFamilia({
+          id: data.id,
+          responsavel: data.nomeRepresentante || data.nomeRepresentanteFamilia || '',
+          tecnico: data.tecnicoNome || data.tecnico?.nome || data.tecnico || '',
+          regiao: data.bairro || data.regiao || '',
+          tel: data.telefoneCelular || data.telefoneResidencial || '',
+        });
+      })
+      .catch(() => {});
+
+    // Busca ficha cadastral existente e pré-preenche o formulário
+    fetch(`${API_URL}/familias/${id}/cadastro`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+
+        const COR_RACA = {
+          BRANCA: 'Branca', PRETA: 'Preta', AMARELA: 'Amarela',
+          PARDA: 'Parda', INDIGENA: 'Indígena', SEM_DECLARACAO: 'Sem declaração',
+        };
+        const SIT_HAB = {
+          CORTICO: 'cortico', FAVELA: 'favela', LOTEAMENTO_IRREGULAR: 'loteamento',
+        };
+
+        let grauInstrucao = '';
+        if (data.analfabeto)                          grauInstrucao = 'analfabeto';
+        else if (data.ensinoFundamental === 'COMPLETO')   grauInstrucao = 'fund_completo';
+        else if (data.ensinoFundamental === 'INCOMPLETO') grauInstrucao = 'fund_incompleto';
+        else if (data.ensinoMedio === 'COMPLETO')         grauInstrucao = 'medio_completo';
+        else if (data.ensinoMedio === 'INCOMPLETO')       grauInstrucao = 'medio_incompleto';
+        else if (data.ensinoSuperior === 'COMPLETO')      grauInstrucao = 'superior_completo';
+        else if (data.ensinoSuperior === 'INCOMPLETO')    grauInstrucao = 'superior_incompleto';
+
+        setForm({
+          nomeSASF:           data.nomeServicoSasf || 'SASF Chico Mendes',
+          cas:                data.cas || '',
+          cras:               data.cras || '',
+          nMatricula:         data.numeroMatricula || '',
+          dataMatricula:      toDateBR(data.dataMatricula),
+          dataDesligamento:   toDateBR(data.dataDesligamento),
+          nomeRepresentante:  data.nomeRepresentanteFamilia || '',
+          genero:             data.sexo === 'MASCULINO' ? 'masculino' : data.sexo === 'FEMININO' ? 'feminino' : '',
+          nascimento:         toDateBR(data.dataNascimento),
+          nNIS:               data.nis || '',
+          naturalidade:       data.naturalidadeMunicipioEstado || '',
+          corRaca:            COR_RACA[data.corRaca] || data.corRaca || '',
+          deficiencia:        data.pessoaComDeficiencia === true ? 'sim' : data.pessoaComDeficiencia === false ? 'nao' : '',
+          cpf:                data.cpf || '',
+          rg:                 data.rg || '',
+          emissao:            toDateBR(data.dataEmissao),
+          orgaoEmissor:       data.orgaoEmissor || '',
+          uf:                 data.uf || '',
+          ctps:               data.ctpsN || '',
+          serie:              data.serie || '',
+          mae:                data.mae || '',
+          pai:                data.pai || '',
+          estadoCivil:        data.estadoCivil?.toLowerCase() || '',
+          grauInstrucao,
+          profissao:          data.profissao || '',
+          ocupacao:           data.ocupacao || '',
+          situacaoEmprego:    data.situacaoEmprego?.toLowerCase() || '',
+          renda:              data.renda != null ? String(data.renda) : '',
+          endereco:           data.endereco || '',
+          numEnd:             data.numero || '',
+          complemento:        data.complemento || '',
+          cep:                data.cep || '',
+          bairro:             data.bairro || '',
+          distrito:           data.distrito || '',
+          telResid:           data.telefoneResidencial || '',
+          telCel:             data.telefoneCelular || '',
+          telefone:           data.telefoneRecado || '',
+          pontoReferencia:    data.pontoReferencia || '',
+          condicoesMoradia:   data.condicaoMoradia?.toLowerCase() || '',
+          numCommodores:      data.numeroComodos != null ? String(data.numeroComodos) : '',
+          valorAluguel:       data.valorAluguel != null ? String(data.valorAluguel) : '',
+          tipoConstrucao:     data.tipoConstrucao?.toLowerCase() || '',
+          situacaoHabitacional: SIT_HAB[data.situacaoHabitacional] || '',
+          recebeTransferencia:  data.recebeProgramaTransferenciaRenda === true ? 'sim' : data.recebeProgramaTransferenciaRenda === false ? 'nao' : '',
+          transferenciasQuais:  data.programaRenda ? [data.programaRenda.toLowerCase()] : [],
+          recebeBPC:            data.recebeBeneficioPrestacaoContinuada === true ? 'sim' : data.recebeBeneficioPrestacaoContinuada === false ? 'nao' : '',
+          bpcQuais:             data.tipoBeneficioPrestacaoContinuada
+            ? [data.tipoBeneficioPrestacaoContinuada === 'PESSOA_COM_DEFICIENCIA' ? 'deficiencia' : 'idoso']
+            : [],
+          demanda:    data.demandaApresentada || '',
+          tecnico:    data.tecnicoNome || '',
+          dataTecnico: toDateBR(data.data),
+        });
+
+        if (data.composicaoFamiliar?.length) {
+          setMembros(prev => {
+            const next = [...prev];
+            data.composicaoFamiliar.forEach((m, i) => {
+              if (i < next.length) next[i] = {
+                nome:       m.nome || '',
+                nascimento: toDateBR(m.dataNascimento),
+                parentesco: m.parentesco || '',
+                profissao:  m.profissao || '',
+                ocupacao:   m.ocupacao || '',
+                renda:      m.renda != null ? String(m.renda) : '',
+                fatoresRisco: m.fatoresRisco || '',
+              };
+            });
+            return next;
+          });
+        }
+
+        if (data.informacoesComplementares?.length) {
+          setComplementares(prev => {
+            const next = [...prev];
+            data.informacoesComplementares.forEach((c, i) => {
+              if (i < next.length) next[i] = {
+                nome:          c.nome || '',
+                estuda:        c.estuda === true ? 'sim' : c.estuda === false ? 'nao' : '',
+                grauInstrucao: c.grauInstrucao || '',
+                cca:           c.cca || false,
+                cj:            c.cj || false,
+                cedesp:        c.cedesp || false,
+                nci:           c.nci || false,
+                outros:        c.outros || '',
+              };
+            });
+            return next;
+          });
+        }
+      })
+      .catch(() => {});
+  }, [id]);
 
   const [membros, setMembros] = useState(Array.from({ length: 12 }, emptyMembro));
   const [complementares, setComplementares] = useState(Array.from({ length: 12 }, emptyComplementar));
+
+  const maskDate = v => {
+    const d = v.replace(/\D/g, '').slice(0, 8);
+    if (d.length <= 2) return d;
+    if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
+    return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`;
+  };
+
+  const DATE_FIELDS = new Set(['dataMatricula', 'dataDesligamento', 'nascimento', 'emissao', 'dataTecnico']);
 
   const handle = (e) => {
     const { name, value, type, checked } = e.target;
@@ -139,7 +293,7 @@ const NovosCadastro = () => {
         return { ...f, [name]: checked ? [...arr, value] : arr.filter(v => v !== value) };
       });
     } else {
-      setForm(f => ({ ...f, [name]: value }));
+      setForm(f => ({ ...f, [name]: DATE_FIELDS.has(name) ? maskDate(value) : value }));
     }
   };
 
@@ -188,11 +342,127 @@ const NovosCadastro = () => {
     );
   };
 
-  const handleSave = () => {
-    if (familia) {
-      navigate(`/detalhes-familia/${familia.id}`);
-    } else {
-      navigate('/familias');
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+
+  const parseDateBRfc = (str) => {
+    if (!str) return null;
+    const p = str.split('/');
+    if (p.length === 3) return `${p[2]}-${p[1]}-${p[0]}`;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+    return null;
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveError('');
+    const userId = Number(localStorage.getItem('userId')) || null;
+    const familiaId = familia?.id || id;
+    const composicaoFamiliar = membros.filter(m => m.nome).map(m => ({
+      nome: m.nome,
+      dataNascimento: parseDateBRfc(m.nascimento),
+      parentesco: m.parentesco,
+      profissao: m.profissao,
+      ocupacao: m.ocupacao,
+      renda: m.renda ? parseFloat(m.renda) : null,
+      fatoresRisco: m.fatoresRisco,
+    }));
+    const informacoesComplementares = complementares.filter(c => c.nome).map(c => ({
+      nome: c.nome,
+      estuda: c.estuda === 'sim',
+      grauInstrucao: c.grauInstrucao,
+      cca: c.cca,
+      cj: c.cj,
+      cedesp: c.cedesp,
+      nci: c.nci,
+      outros: c.outros,
+    }));
+    try {
+      const endpoint = familiaId
+        ? `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/familias/${familiaId}/cadastro`
+        : `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/familias`;
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          nomeServicoSasf: form.nomeSASF,
+          cas: form.cas,
+          cras: form.cras,
+          numeroMatricula: form.nMatricula,
+          dataMatricula: parseDateBRfc(form.dataMatricula),
+          dataDesligamento: parseDateBRfc(form.dataDesligamento),
+          nomeRepresentanteFamilia: form.nomeRepresentante,
+          sexo: form.genero === 'masculino' ? 'MASCULINO' : form.genero === 'feminino' ? 'FEMININO' : null,
+          dataNascimento: parseDateBRfc(form.nascimento),
+          nis: form.nNIS,
+          naturalidadeMunicipioEstado: form.naturalidade,
+          corRaca: form.corRaca
+            ? form.corRaca.toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, '_')
+            : null,
+          pessoaComDeficiencia: form.deficiencia === 'sim' ? true : form.deficiencia === 'nao' ? false : null,
+          rg: form.rg,
+          cpf: form.cpf,
+          dataEmissao: parseDateBRfc(form.emissao),
+          orgaoEmissor: form.orgaoEmissor,
+          uf: form.uf,
+          ctpsN: form.ctps,
+          serie: form.serie,
+          mae: form.mae,
+          pai: form.pai,
+          estadoCivil: form.estadoCivil ? form.estadoCivil.toUpperCase() : null,
+          analfabeto: form.grauInstrucao === 'analfabeto',
+          ensinoFundamental: form.grauInstrucao === 'fund_completo' ? 'COMPLETO'
+            : form.grauInstrucao === 'fund_incompleto' ? 'INCOMPLETO' : null,
+          ensinoMedio: form.grauInstrucao === 'medio_completo' ? 'COMPLETO'
+            : form.grauInstrucao === 'medio_incompleto' ? 'INCOMPLETO' : null,
+          ensinoSuperior: form.grauInstrucao === 'superior_completo' ? 'COMPLETO'
+            : form.grauInstrucao === 'superior_incompleto' ? 'INCOMPLETO' : null,
+          profissao: form.profissao,
+          ocupacao: form.ocupacao,
+          situacaoEmprego: form.situacaoEmprego ? form.situacaoEmprego.toUpperCase() : null,
+          renda: form.renda ? parseFloat(form.renda) : null,
+          endereco: form.endereco,
+          numero: form.numEnd,
+          complemento: form.complemento,
+          bairro: form.bairro,
+          cep: form.cep,
+          distrito: form.distrito,
+          telefoneResidencial: form.telResid,
+          telefoneCelular: form.telCel,
+          telefoneRecado: form.telefone,
+          pontoReferencia: form.pontoReferencia,
+          condicaoMoradia: form.condicoesMoradia ? form.condicoesMoradia.toUpperCase() : null,
+          numeroComodos: form.numCommodores ? parseInt(form.numCommodores) : null,
+          valorAluguel: form.valorAluguel ? parseFloat(form.valorAluguel) : null,
+          tipoConstrucao: form.tipoConstrucao ? form.tipoConstrucao.toUpperCase() : null,
+          situacaoHabitacional: ({ cortico: 'CORTICO', favela: 'FAVELA', loteamento: 'LOTEAMENTO_IRREGULAR' })[form.situacaoHabitacional] || null,
+          recebeProgramaTransferenciaRenda: form.recebeTransferencia === 'sim' ? true : form.recebeTransferencia === 'nao' ? false : null,
+          programaRenda: form.transferenciasQuais[0] ? form.transferenciasQuais[0].toUpperCase() : null,
+          recebeBeneficioPrestacaoContinuada: form.recebeBPC === 'sim' ? true : form.recebeBPC === 'nao' ? false : null,
+          tipoBeneficioPrestacaoContinuada: ({ idoso: 'IDOSO', deficiencia: 'PESSOA_COM_DEFICIENCIA' })[form.bpcQuais[0]] || null,
+          composicaoFamiliar,
+          informacoesComplementares,
+          demandaApresentada: form.demanda,
+          tecnicoId: userId,
+          data: parseDateBRfc(form.dataTecnico),
+        }),
+      });
+      if (!res.ok) {
+        let msg = `Erro ${res.status}`;
+        try {
+          const body = await res.json();
+          msg = body.message || body.error || body.detalhe || JSON.stringify(body);
+        } catch { /* body não é JSON */ }
+        throw new Error(msg);
+      }
+      navigate(familia ? `/detalhes-familia/${familia.id}` : '/familias');
+    } catch (e) {
+      setSaveError(e.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -489,7 +759,7 @@ const NovosCadastro = () => {
                   </td>
                   <td>
                     <input className="tbl-input tbl-input--sm" value={m.nascimento}
-                      onChange={e => handleMembro(i, 'nascimento', e.target.value)}
+                      onChange={e => handleMembro(i, 'nascimento', maskDate(e.target.value))}
                       placeholder="dd/mm/aaaa" />
                   </td>
                   <td>
@@ -675,15 +945,16 @@ const NovosCadastro = () => {
         )}
 
         {/* ── AÇÕES ── */}
+        {saveError && <p style={{ color: '#dc2626', margin: '8px 0' }}>{saveError}</p>}
         <div className="form-actions">
           <Link to={backPath} className="btn-secondary">← Voltar</Link>
           <button className="btn-secondary" onClick={() => {}}>Salvar rascunho</button>
-          <button className="btn-primary btn-success" onClick={handleSave}>
+          <button className="btn-primary btn-success" onClick={handleSave} disabled={saving}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
               strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            Confirmar cadastro
+            {saving ? 'Salvando…' : 'Confirmar cadastro'}
           </button>
         </div>
 

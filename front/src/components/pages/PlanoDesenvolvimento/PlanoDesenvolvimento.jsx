@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useParams, useNavigate } from 'react-router';
 import Layout from '../../Layout';
 import '../FichaAtualizacao/FichaAtualizacao.css';
 import '../NovoCadastro/NovosCadastro.css';
@@ -32,8 +32,19 @@ const SectionTitle = ({ children }) => (
   </div>
 );
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+const parseDateBRpd = (str) => {
+  if (!str) return null;
+  const p = str.split('/');
+  if (p.length === 3) return `${p[2]}-${p[1]}-${p[0]}`;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  return null;
+};
+
 const PlanoDesenvolvimento = () => {
   const { id }   = useParams();
+  const navigate = useNavigate();
   const familia  = FAMILIAS.find(f => f.id === Number(id)) || FAMILIAS[0];
 
   const [form, setForm] = useState({
@@ -50,14 +61,78 @@ const PlanoDesenvolvimento = () => {
   });
 
   const [acoes, setAcoes] = useState(Array.from({ length: 8 }, emptyAcao));
+  const [saving, setSaving] = useState(false);
+  const [error, setError]   = useState('');
+
+  const maskDate = v => {
+    const d = v.replace(/\D/g, '').slice(0, 8);
+    if (d.length <= 2) return d;
+    if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
+    return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`;
+  };
+
+  const DATE_FIELDS = new Set(['dataElaboracao', 'dataValidade', 'dataReavaliacao', 'dataDesligamento']);
 
   const handle = e => {
     const { name, value } = e.target;
-    setForm(f => ({ ...f, [name]: value }));
+    setForm(f => ({ ...f, [name]: DATE_FIELDS.has(name) ? maskDate(value) : value }));
   };
 
   const handleAcao = (idx, field, value) =>
     setAcoes(a => a.map((ac, i) => i === idx ? { ...ac, [field]: value } : ac));
+
+  const handleSubmit = async () => {
+    setSaving(true);
+    setError('');
+    const analiseDiagnostica = [
+      form.composicao && `Composição Familiar: ${form.composicao}`,
+      form.moradia    && `Moradia: ${form.moradia}`,
+      form.saude      && `Saúde: ${form.saude}`,
+      form.educacao   && `Educação: ${form.educacao}`,
+      form.divida     && `Dívida: ${form.divida}`,
+    ].filter(Boolean).join('\n');
+    const itens = acoes.filter(a => a.estrategia || a.acaoCras || a.acaoFamilia).map(a => ({
+      estrategiasIntervencao: a.estrategia,
+      CRAS: a.acaoCras,
+      familia: a.acaoFamilia,
+      prazo: a.prazo,
+      resultadosEsperados: a.resultado,
+    }));
+    try {
+      const res = await fetch(`${API_URL}/familias/${id}/desenvolvimentos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          nomeServicoSASF: form.servico,
+          CAS: form.cas,
+          CRAS: form.cras,
+          nomeRepresentanteFamilia: form.representante,
+          numeroMatricula: form.matricula,
+          numeroNIS_BDC: form.nis,
+          numeroRG: form.rg,
+          analiseDiagnostica,
+          objetivo: form.objetivo,
+          itens,
+          numeroPlano: form.planoNum,
+          dataElaboracaoPlano: parseDateBRpd(form.dataElaboracao),
+          dataValidadePlano: parseDateBRpd(form.dataValidade),
+          dataReavaliacaoPlano: parseDateBRpd(form.dataReavaliacao),
+          dataDesligamento: parseDateBRpd(form.dataDesligamento),
+          tecnico: form.tecnicoRef,
+          imagemAssinaturaURL: form.assinatura,
+        }),
+      });
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      navigate(`/detalhes-familia/${id}`);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <Layout>
@@ -207,15 +282,16 @@ const PlanoDesenvolvimento = () => {
           </div>
         </div>
 
+        {error && <p style={{ color: '#dc2626', margin: '8px 0' }}>{error}</p>}
         <div className="form-actions">
           <Link to={`/detalhes-familia/${familia.id}`} className="btn-secondary">← Voltar</Link>
           <button className="btn-secondary" onClick={() => {}}>Salvar rascunho</button>
-          <button className="btn-primary btn-success">
+          <button className="btn-primary btn-success" onClick={handleSubmit} disabled={saving}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
               strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            Salvar plano de desenvolvimento
+            {saving ? 'Salvando…' : 'Salvar plano de desenvolvimento'}
           </button>
         </div>
 

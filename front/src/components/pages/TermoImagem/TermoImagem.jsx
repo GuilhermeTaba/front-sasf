@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useParams, useNavigate } from 'react-router';
 import Layout from '../../Layout';
 import './TermoImagem.css';
 
@@ -19,8 +19,17 @@ const MESES = [
   'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro',
 ];
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+const MESES_NUM = {
+  'Janeiro': 1, 'Fevereiro': 2, 'Março': 3, 'Abril': 4,
+  'Maio': 5, 'Junho': 6, 'Julho': 7, 'Agosto': 8,
+  'Setembro': 9, 'Outubro': 10, 'Novembro': 11, 'Dezembro': 12,
+};
+
 const TermoImagem = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const familia = FAMILIAS.find(f => f.id === Number(id)) || FAMILIAS[0];
 
   const [form, setForm] = useState({
@@ -34,9 +43,43 @@ const TermoImagem = () => {
     assinatura: familia.responsavel,
   });
 
+  const [saving, setSaving] = useState(false);
+  const [error, setError]   = useState('');
+
   const handle = e => {
     const { name, value } = e.target;
     setForm(f => ({ ...f, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
+    setSaving(true);
+    setError('');
+    const mesNum = MESES_NUM[form.mes];
+    const data = (form.dia && form.mes && form.ano && mesNum)
+      ? `${form.ano}-${String(mesNum).padStart(2, '0')}-${String(form.dia).padStart(2, '0')}`
+      : null;
+    try {
+      const res = await fetch(`${API_URL}/familias/${id}/termos-autorizacao`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          nome: form.nome,
+          rg: form.rg,
+          cpf: form.cpf,
+          criancas: form.criancas,
+          data,
+        }),
+      });
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      navigate(`/detalhes-familia/${id}`);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -184,15 +227,17 @@ const TermoImagem = () => {
         </div>
 
         {/* ── AÇÕES ── */}
+        {error && <p style={{ color: '#dc2626', margin: '8px 0' }}>{error}</p>}
         <div className="form-actions">
           <Link to={`/detalhes-familia/${familia.id}`} className="btn-secondary">← Voltar</Link>
           <button className="btn-secondary" onClick={() => {}}>Salvar rascunho</button>
-          <button className="btn-primary" style={{ background: '#7c3aed', borderColor: '#7c3aed' }}>
+          <button className="btn-primary" style={{ background: '#7c3aed', borderColor: '#7c3aed' }}
+            onClick={handleSubmit} disabled={saving}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
               strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            Salvar termo de autorização
+            {saving ? 'Salvando…' : 'Salvar termo de autorização'}
           </button>
         </div>
 

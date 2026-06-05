@@ -354,6 +354,232 @@
           "body": "[\n    {\n        \"aprovado\": true,\n        \"ativo\": true,\n        \"cargo\": \"ADMIN\",\n        \"email\": \"admin@example.com\",\n        \"id\": 1,\n        \"nome\": \"admin Teste\"\n    },\n    {\n        \"aprovado\": true,\n        \"ativo\": true,\n        \"cargo\": \"TECNICO\",\n        \"email\": \"tecnico@example.com\",\n        \"id\": 2,\n        \"nome\": \"tecnico Teste\"\n    },\n    {\n        \"aprovado\": true,\n        \"ativo\": true,\n        \"cargo\": \"ORIENTADOR\",\n        \"email\": \"gui@gmail.com\",\n        \"id\": 3,\n        \"nome\": \"gui\",\n        \"tecnico\": null\n    }\n]"
         }
       ]
+    },
+    {
+      "name": "Esqueceu-Senha",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\":\"guilhermektaba@gmail.com\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/esqueci-senha",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "esqueci-senha"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "redefinir-senha",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "",
+            "value": "",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"token\":,\r\n    \"senha\":123\r\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/redefinir-senha",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "redefinir-senha"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "getFamilias",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "http://localhost:8080/familias",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "familias"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "getFamilias",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://localhost:8080/familias",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "familias"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Vary",
+              "value": "Access-Control-Request-Method"
+            },
+            {
+              "key": "Vary",
+              "value": "Access-Control-Request-Headers"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Content-Length",
+              "value": "117"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 05 Jun 2026 17:00:58 GMT"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=60"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            }
+          ],
+          "cookie": [],
+          "body": "[\n    {\n        \"codigoFamilia\": \"MAT-001\",\n        \"id\": 1,\n        \"nivelUrgencia\": \"URGENCIA\",\n        \"nomeRepresentante\": \"Maria Aparecida da Silva Santos\"\n    }\n]"
+        }
+      ]
+    },
+    {
+      "name": "getFichaCadastral",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/familias/1/cadastro",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "familias",
+            "1",
+            "cadastro"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "getFichaCadastral",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/familias/1/cadastro",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "familias",
+                "1",
+                "cadastro"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Vary",
+              "value": "Access-Control-Request-Method"
+            },
+            {
+              "key": "Vary",
+              "value": "Access-Control-Request-Headers"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 05 Jun 2026 17:07:26 GMT"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=60"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            }
+          ],
+          "cookie": [],
+          "body": "[\n    {\n        \"cpf\": \"12345678901\",\n        \"data\": \"2026-06-02\",\n        \"familiaId\": 1,\n        \"id\": 1,\n        \"nomeRepresentanteFamilia\": \"Maria Aparecida da Silva Santos\"\n    }\n]"
+        }
+      ]
     }
   ]
 }
