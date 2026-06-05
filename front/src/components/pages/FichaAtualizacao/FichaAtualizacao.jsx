@@ -1,19 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router';
 import Layout from '../../Layout';
 import './FichaAtualizacao.css';
 
-/* ── dados mock famílias ── */
-const FAMILIAS = [
-  { id: 1, responsavel: 'Carlos Oliveira',  tecnico: 'Ana Silva'     },
-  { id: 2, responsavel: 'Marta Lima',        tecnico: 'Ana Silva'     },
-  { id: 3, responsavel: 'João Ribeiro',      tecnico: 'Ana Silva'     },
-  { id: 4, responsavel: 'Fernanda Souza',    tecnico: 'Carlos Mendes' },
-  { id: 5, responsavel: 'Paulo Costa',       tecnico: 'Carlos Mendes' },
-  { id: 6, responsavel: 'Lúcia Pereira',     tecnico: 'Beatriz Rocha' },
-  { id: 7, responsavel: 'Ricardo Mendes',    tecnico: 'Beatriz Rocha' },
-  { id: 8, responsavel: 'Sandra Almeida',    tecnico: 'Elisa Tavares' },
-];
 
 const emptyMembro = () => ({
   nome: '', escola: '', serie: '', nascimento: '', sexo: '',
@@ -30,7 +19,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 const parseDateBR = (str) => {
   if (!str) return null;
   const p = str.split('/');
-  if (p.length === 3) return `${p[2]}-${p[1]}-${p[0]}`;
+  if (p.length === 3 && p[2].length === 4) return `${p[2]}-${p[1]}-${p[0]}`;
   if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
   return null;
 };
@@ -44,7 +33,7 @@ const MESES_NUM_AT = {
 const FichaAtualizacao = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const familia = FAMILIAS.find(f => f.id === Number(id)) || FAMILIAS[0];
+  const [familia, setFamilia] = useState(null);
 
   const [form, setForm] = useState({
     rf:          '',
@@ -73,7 +62,7 @@ const FichaAtualizacao = () => {
     observacoes: '',
     tipoProntuario: '',
     dt:            '',
-    tecnico:       '',
+    tecnicoId:     '',
     local:         'São Paulo',
     dia:           '',
     mes:           '',
@@ -85,6 +74,24 @@ const FichaAtualizacao = () => {
   const [membros, setMembros] = useState(Array.from({ length: 6 }, emptyMembro));
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState('');
+  const [tecnicos, setTecnicos] = useState([]);
+
+  useEffect(() => {
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+    fetch(`${API_URL}/tecnicos`, { headers })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setTecnicos(Array.isArray(data) ? data : []))
+      .catch(() => {});
+    if (id) {
+      fetch(`${API_URL}/familias/${id}`, { headers })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (!data) return;
+          setFamilia({ id: data.id, responsavel: data.nomeRepresentante || data.nomeRepresentanteFamilia || '' });
+        })
+        .catch(() => {});
+    }
+  }, [id]);
 
   const maskDate = v => {
     const d = v.replace(/\D/g, '').slice(0, 8);
@@ -106,7 +113,6 @@ const FichaAtualizacao = () => {
   const handleSubmit = async () => {
     setSaving(true);
     setError('');
-    const userId = Number(localStorage.getItem('userId')) || null;
     const membrosPayload = membros
       .filter(m => m.nome)
       .map(m => ({
@@ -119,6 +125,59 @@ const FichaAtualizacao = () => {
         n: m.sexo === 'N',
       }));
     const num = (v) => v !== '' ? Number(v) : null;
+    const payload = {
+      numeroMatricula: form.matricula,
+      nomeRepresentanteFamilia: familia?.responsavel || '',
+      nis: form.nis,
+      cpf: form.cpf,
+      dataNascimento: parseDateBR(form.nascResp),
+      membrosAtualizados: membrosPayload,
+      zeroACinco: num(form.fx0a5),
+      seisAQuatorze: num(form.fx6a14),
+      quinzeADezessete: num(form.fx15a17),
+      dezoitoAVinteENove: num(form.fx18a29),
+      trintaACinquentaENove: num(form.fx30a59),
+      sessentaMais: num(form.fx60m),
+      pcd: num(form.nPcd),
+      bpcIdoso: num(form.bpcIdoso),
+      bpcPcd: num(form.bpcPcd),
+      bolsaFamilia: num(form.bolsaFamilia),
+      condicionalidades: form.condicionalidades,
+      status: form.statusBenef,
+      aguardandoVagaEmei: num(form.agCei0a5),
+      frequentaCei: num(form.freCei),
+      frequentaEmei: num(form.freEmei),
+      foraEscola: num(form.fora6a17),
+      aguardandoVagaEscola: num(form.agVaga6a17),
+      ensinoFundamental: num(form.ensFund),
+      ensinoMedio: num(form.ensMedio),
+      eja: num(form.ejaOuSimilar),
+      pcdEscola: num(form.pcdEspecial),
+      cursoSuperior: num(form.cursoSup),
+      cca: num(form.cca),
+      cj: num(form.ci),
+      cedesp: num(form.cedesp),
+      nci: num(form.nci),
+      naispd: num(form.naispd),
+      vacinaAtualizada: num(form.vacinados),
+      mulheresGestantes: num(form.gestantes),
+      gestantesPreNatal: num(form.gestantesPreNatal),
+      situacaoRua: num(form.sitRua),
+      trabalhoInfantil: num(form.trabInfantil),
+      dependencia: num(form.alcoolDrogas),
+      adolescenteMse: num(form.adolMSEAberto),
+      adolescenteInternacao: num(form.adolMSEInternacao),
+      adultoPrivado: num(form.adultoPrivLiberdade),
+      criancasSaica: num(form.criancaSaica),
+      idosoAcolhimento: num(form.idosoAcolhimento),
+      observacoes: form.observacoes,
+      pdf: form.tipoProntuario === 'PDF',
+      pdu: form.tipoProntuario === 'PDU',
+      dt: form.dt || null,
+      tecnicoId: Number(form.tecnicoId) || null,
+      responsavel: form.responsavel,
+    };
+    console.log('[FichaAtualizacao] POST payload:', payload);
     try {
       const res = await fetch(`${API_URL}/familias/${id}/atualizacoes`, {
         method: 'POST',
@@ -126,58 +185,7 @@ const FichaAtualizacao = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify({
-          numeroMatricula: form.matricula,
-          nomeRepresentanteFamilia: familia.responsavel,
-          nis: form.nis,
-          cpf: form.cpf,
-          dataNascimento: parseDateBR(form.nascResp),
-          membrosAtualizados: membrosPayload,
-          zeroACinco: num(form.fx0a5),
-          seisAQuatorze: num(form.fx6a14),
-          quinzeADezessete: num(form.fx15a17),
-          dezoitoAVinteENove: num(form.fx18a29),
-          trintaACinquentaENove: num(form.fx30a59),
-          sessentaMais: num(form.fx60m),
-          pcd: num(form.nPcd),
-          bpcIdoso: num(form.bpcIdoso),
-          bpcPcd: num(form.bpcPcd),
-          bolsaFamilia: num(form.bolsaFamilia),
-          condicionalidades: form.condicionalidades,
-          status: form.statusBenef,
-          aguardandoVagaEmei: num(form.agCei0a5),
-          frequentaCei: num(form.freCei),
-          frequentaEmei: num(form.freEmei),
-          foraEscola: num(form.fora6a17),
-          aguardandoVagaEscola: num(form.agVaga6a17),
-          ensinoFundamental: num(form.ensFund),
-          ensinoMedio: num(form.ensMedio),
-          eja: num(form.ejaOuSimilar),
-          pcdEscola: num(form.pcdEspecial),
-          cursoSuperior: num(form.cursoSup),
-          cca: num(form.cca),
-          cj: num(form.ci),
-          cedesp: num(form.cedesp),
-          nci: num(form.nci),
-          naispd: num(form.naispd),
-          vacinaAtualizada: num(form.vacinados),
-          mulheresGestantes: num(form.gestantes),
-          gestantesPreNatal: num(form.gestantesPreNatal),
-          situacaoRua: num(form.sitRua),
-          trabalhoInfantil: num(form.trabInfantil),
-          dependencia: num(form.alcoolDrogas),
-          adolescenteMse: num(form.adolMSEAberto),
-          adolescenteInternacao: num(form.adolMSEInternacao),
-          adultoPrivado: num(form.adultoPrivLiberdade),
-          criancasSaica: num(form.criancaSaica),
-          idosoAcolhimento: num(form.idosoAcolhimento),
-          observacoes: form.observacoes,
-          pdf: form.tipoProntuario === 'PDF',
-          pdu: form.tipoProntuario === 'PDU',
-          dt: form.dt || null,
-          tecnicoId: userId,
-          responsavel: form.responsavel,
-        }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(`Erro ${res.status}`);
       navigate(`/detalhes-familia/${id}`);
@@ -200,9 +208,13 @@ const FichaAtualizacao = () => {
     <Layout>
       {/* BREADCRUMB */}
       <div className="breadcrumb">
-        <Link to="/familias"                          className="bc-link">Famílias</Link>
-        <span className="bc-sep">›</span>
-        <Link to={`/detalhes-familia/${familia.id}`} className="bc-link">{familia.responsavel}</Link>
+        <Link to="/familias" className="bc-link">Famílias</Link>
+        {familia && (
+          <>
+            <span className="bc-sep">›</span>
+            <Link to={`/detalhes-familia/${id}`} className="bc-link">{familia.responsavel}</Link>
+          </>
+        )}
         <span className="bc-sep">›</span>
         <span className="bc-current">Ficha de Atualização</span>
       </div>
@@ -466,9 +478,12 @@ const FichaAtualizacao = () => {
           </div>
           <div className="fa-field fa-field--span2">
             <label>Técnico Responsável</label>
-            <input name="tecnico" value={form.tecnico} onChange={handle}
-              placeholder={familia.tecnico || 'Nome do técnico'}
-              className="fa-input" />
+            <select name="tecnicoId" value={form.tecnicoId} onChange={handle} className="fa-input">
+              <option value="">Selecione um técnico...</option>
+              {tecnicos.map(t => (
+                <option key={t.id} value={t.id}>{t.nome}</option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -509,7 +524,7 @@ const FichaAtualizacao = () => {
         {/* ── AÇÕES ── */}
         {error && <p style={{ color: '#dc2626', margin: '8px 0' }}>{error}</p>}
         <div className="form-actions">
-          <Link to={`/detalhes-familia/${familia.id}`} className="btn-secondary">← Voltar</Link>
+          <Link to={`/detalhes-familia/${id}`} className="btn-secondary">← Voltar</Link>
           <button className="btn-secondary" onClick={() => {}}>Salvar rascunho</button>
           <button className="btn-primary btn-success" onClick={handleSubmit} disabled={saving}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"

@@ -91,23 +91,42 @@ const DetalhesFamilia = () => {
       .catch(() => {})
       .finally(() => setLoading(false));
 
+    const toDateBR = iso => {
+      if (!iso) return '';
+      const p = iso.split('-');
+      return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
+    };
+
     fetch(`${API_URL}/familias/${id}/cadastro`, { headers })
       .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (!data) return;
-        const toDateBR = iso => {
-          if (!iso) return '';
-          const p = iso.split('-');
-          return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
-        };
+      .then(list => {
+        const items = Array.isArray(list) ? list : (list ? [list] : []);
+        if (!items.length) return;
         setListas(prev => ({
           ...prev,
-          cadastral: [{
-            id: data.id ?? 1,
+          cadastral: items.map((data, i) => ({
+            id: data.id ?? i + 1,
             data: toDateBR(data.dataMatricula) || toDateBR(data.data) || '—',
             tecnico: data.tecnicoNome || '—',
             status: 'completo',
-          }],
+          })),
+        }));
+      })
+      .catch(() => {});
+
+    fetch(`${API_URL}/familias/${id}/visitas`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(list => {
+        const items = Array.isArray(list) ? list : (list ? [list] : []);
+        if (!items.length) return;
+        setListas(prev => ({
+          ...prev,
+          visita: items.map((data, i) => ({
+            id: data.id ?? i + 1,
+            data: toDateBR(data.dataPreenchimento) || '—',
+            tecnico: data.tecnicoNome || '—',
+            status: 'completo',
+          })),
         }));
       })
       .catch(() => {});
@@ -159,6 +178,7 @@ const DetalhesFamilia = () => {
       itemLabel:    'Ficha Cadastral',
       novaLabel:    'Nova Ficha Cadastral',
       novaPath:     `/novo-cadastro/${id}`,
+      itemPath:     (item) => `/novo-cadastro/${id}/${item.id}`,
       statusMap:    STATUS_FICHA,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
@@ -219,6 +239,7 @@ const DetalhesFamilia = () => {
       itemLabel:    'Ficha de Visita',
       novaLabel:    'Nova Visita Domiciliar',
       novaPath:     `/ficha-visita/${id}`,
+      itemPath:     (item) => `/ficha-visita/${id}/${item.id}`,
       statusMap:    STATUS_FICHA,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
@@ -541,7 +562,7 @@ const DetalhesFamilia = () => {
                   <div
                     key={item.id}
                     className="lista-doc-item"
-                    onClick={() => navigate(opcaoAtiva.novaPath)}
+                    onClick={() => navigate(opcaoAtiva.itemPath ? opcaoAtiva.itemPath(item) : opcaoAtiva.novaPath)}
                   >
                     <div className="lista-doc-item-icon" style={{ background: opcaoAtiva.bg, color: opcaoAtiva.color }}>
                       {opcaoAtiva.icon}
@@ -564,7 +585,7 @@ const DetalhesFamilia = () => {
                     <button
                       className="lista-doc-ver-btn"
                       style={{ borderColor: opcaoAtiva.border, color: opcaoAtiva.color }}
-                      onClick={e => { e.stopPropagation(); navigate(opcaoAtiva.novaPath); }}
+                      onClick={e => { e.stopPropagation(); navigate(opcaoAtiva.itemPath ? opcaoAtiva.itemPath(item) : opcaoAtiva.novaPath); }}
                     >
                       <span className="lista-doc-ver-label">Visualizar</span>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
