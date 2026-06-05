@@ -206,6 +206,18 @@ html, body, #root {
   text-decoration: underline;
 }
 
+/* ── Ícone de confirmação (esqueci senha) ── */
+.es-icone-check {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: #dbeafe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
 /* ── PAINEL DIREITO (imagem) ── */
 .painel-direito {
   width: 50%;

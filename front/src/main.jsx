@@ -24,6 +24,8 @@ import PlanoDesenvolvimento       from './components/pages/PlanoDesenvolvimento/
 import PlanoDesenvolvimentoPDU    from './components/pages/PlanoDesenvolvimentoPDU/PlanoDesenvolvimentoPDU.jsx'
 import FolhaProsseguimento        from './components/pages/FolhaProsseguimento/FolhaProsseguimento.jsx'
 import CriarConta                from './components/pages/CriarConta/CriarConta.jsx'
+import EsqueciSenha             from './components/pages/EsqueciSenha/EsqueciSenha.jsx'
+import RedefinirSenha           from './components/pages/RedefinirSenha/RedefinirSenha.jsx'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
@@ -46,6 +48,8 @@ createRoot(document.getElementById('root')).render(
         <Route path="/plano-pdu/:id"                               element={<PlanoDesenvolvimentoPDU />} />
         <Route path="/folha-prosseguimento/:id"                    element={<FolhaProsseguimento />} />
         <Route path="/criar-conta"            element={<CriarConta />} />
+        <Route path="/esqueci-senha"          element={<EsqueciSenha />} />
+        <Route path="/redefinir-senha"        element={<RedefinirSenha />} />
         <Route path="*"                      element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
