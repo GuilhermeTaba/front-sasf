@@ -5,6 +5,8 @@ import unasLogo from "../../../assets/unas_logo.png";
 import sasfLogo from "../../../assets/sasf_logo.jpg";
 import sasfImg from "../../../assets/Sasf.avif";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
 const CARGOS = ["ADMIN", "TECNICO", "ORIENTADOR"];
 
 const CriarConta = () => {
@@ -30,7 +32,7 @@ const CriarConta = () => {
 
     setCarregando(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`, {
+      const response = await fetch(`${API_URL}/usuarios`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nome: form.nome, email: form.email, cargo: form.cargo, senha: Number(form.senha) }),

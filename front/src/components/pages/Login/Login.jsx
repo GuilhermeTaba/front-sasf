@@ -5,6 +5,8 @@ import sasfImg from "../../../assets/Sasf.avif";
 import unasLogo from "../../../assets/unas_logo.png";
 import sasfLogo from "../../../assets/sasf_logo.jpg";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -26,7 +28,7 @@ const Login = () => {
     setErro("");
     setCarregando(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, senha: Number(senha) }),
