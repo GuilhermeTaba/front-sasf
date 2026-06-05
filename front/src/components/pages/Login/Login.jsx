@@ -123,6 +123,9 @@ const Login = () => {
             Não tem uma conta?{" "}
             <Link to="/criar-conta">Crie uma</Link>
           </p>
+          <p className="rodape-form" style={{ marginTop: '10px' }}>
+            <Link to="/esqueci-senha">Esqueceu sua senha?</Link>
+          </p>
         </div>
       </div>
 
