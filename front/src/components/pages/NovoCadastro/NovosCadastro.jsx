@@ -212,6 +212,7 @@ const NovosCadastro = () => {
           dataMatricula:      toDateBR(data.dataMatricula),
           dataDesligamento:   toDateBR(data.dataDesligamento),
           nomeRepresentante:  data.nomeRepresentanteFamilia || '',
+          nomeSocial:         data.nomeSocialRepresentante || '',
           genero:             data.sexo || '',
           nascimento:         toDateBR(data.dataNascimento),
           nNIS:               data.nis || '',
@@ -464,7 +465,6 @@ const NovosCadastro = () => {
         tecnicoId: tecnicoId,
         data:      parseDateBRfc(form.dataTecnico),
       };
-      console.log('[NovosCadastro] POST/PUT endpoint:', endpoint, '\npayload:', payload);
       const res = await fetch(endpoint, {
         method,
         headers: {
