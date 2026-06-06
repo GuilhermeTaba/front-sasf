@@ -1,63 +1,70 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '../../Layout';
 import './Agenda.css';
+import {
+  listarEventos,
+  criarEvento,
+  cancelarEvento,
+  listarOrientadores,
+  listarTecnicos,
+  listarFamilias,
+} from '../../../services/agendaService';
 
-/* ── Constantes ── */
-const H_START  = 8;   // 08:00
-const H_END    = 18;  // 18:00
-const H_PX     = 68;  // px por hora
+const H_START  = 8;
+const H_END    = 18;
+const H_PX     = 68;
 const TOTAL_PX = (H_END - H_START) * H_PX;
-
 const DIAS_PT  = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
-const TECNICOS = ['Todos', 'Ana Silva', 'Carlos Mendes', 'Beatriz Rocha', 'Elisa Tavares'];
-
-const COR = {
-  'Ana Silva':     '#1d4ed8',
-  'Carlos Mendes': '#f59e0b',
-  'Beatriz Rocha': '#8b5cf6',
-  'Elisa Tavares': '#0891b2',
-};
-const COR_BG = {
-  'Ana Silva':     '#dbeafe',
-  'Carlos Mendes': '#fef3c7',
-  'Beatriz Rocha': '#ede9fe',
-  'Elisa Tavares': '#cffafe',
-};
-
-const RESPONSAVEIS = [
-  'Carlos Oliveira', 'Marta Lima', 'João Ribeiro', 'Fernanda Souza',
-  'Paulo Costa', 'Lúcia Pereira', 'Ricardo Mendes', 'Sandra Almeida',
-];
-const TIPOS = [
-  'Visita domiciliar', 'Acompanhamento', 'Entrevista social',
-  'Encaminhamento', 'Reunião de grupo',
+const PALETA = [
+  { cor: '#1d4ed8', bg: '#dbeafe' },
+  { cor: '#f59e0b', bg: '#fef3c7' },
+  { cor: '#8b5cf6', bg: '#ede9fe' },
+  { cor: '#0891b2', bg: '#cffafe' },
+  { cor: '#16a34a', bg: '#dcfce7' },
+  { cor: '#dc2626', bg: '#fee2e2' },
 ];
 
-/* ── Dados iniciais ── */
-const INIT = [
-  { id:1,  data:'2026-05-25', inicio:'09:00', fim:'10:00', tipo:'Visita domiciliar',  responsavel:'Carlos Oliveira', tecnico:'Ana Silva'     },
-  { id:2,  data:'2026-05-25', inicio:'11:00', fim:'11:30', tipo:'Acompanhamento',     responsavel:'Marta Lima',      tecnico:'Carlos Mendes' },
-  { id:3,  data:'2026-05-25', inicio:'14:00', fim:'15:00', tipo:'Entrevista social',  responsavel:'Paulo Costa',     tecnico:'Beatriz Rocha' },
-  { id:4,  data:'2026-05-26', inicio:'09:00', fim:'10:00', tipo:'Entrevista social',  responsavel:'João Ribeiro',    tecnico:'Ana Silva'     },
-  { id:5,  data:'2026-05-26', inicio:'14:00', fim:'15:00', tipo:'Encaminhamento',     responsavel:'Fernanda Souza',  tecnico:'Beatriz Rocha' },
-  { id:6,  data:'2026-05-27', inicio:'10:00', fim:'11:00', tipo:'Visita domiciliar',  responsavel:'Paulo Costa',     tecnico:'Carlos Mendes' },
-  { id:7,  data:'2026-05-27', inicio:'14:00', fim:'15:00', tipo:'Acompanhamento',     responsavel:'Lúcia Pereira',   tecnico:'Elisa Tavares' },
-  { id:8,  data:'2026-05-28', inicio:'08:00', fim:'09:00', tipo:'Reunião de grupo',   responsavel:'Ricardo Mendes',  tecnico:'Ana Silva'     },
-  { id:9,  data:'2026-05-28', inicio:'11:00', fim:'12:00', tipo:'Visita domiciliar',  responsavel:'Sandra Almeida',  tecnico:'Beatriz Rocha' },
-  { id:10, data:'2026-05-29', inicio:'09:00', fim:'10:30', tipo:'Entrevista social',  responsavel:'Carlos Oliveira', tecnico:'Elisa Tavares' },
-  { id:11, data:'2026-05-29', inicio:'13:00', fim:'14:00', tipo:'Acompanhamento',     responsavel:'Marta Lima',      tecnico:'Ana Silva'     },
-];
+const getCor   = (idx) => idx < 0 ? '#6b7280' : PALETA[idx % PALETA.length].cor;
+const getCorBg = (idx) => idx < 0 ? '#f3f4f6' : PALETA[idx % PALETA.length].bg;
 
-/* ── Helpers ── */
 const toMin    = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
 const topPx    = (t) => ((toMin(t) - H_START * 60) / 60) * H_PX;
 const heightPx = (s, e) => Math.max(((toMin(e) - toMin(s)) / 60) * H_PX - 4, 22);
 const fmtISO   = (d) => d.toISOString().split('T')[0];
 const fmtShort = (d) => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
 
-/* Semana base: seg 25/05/2026 */
-const BASE = new Date(2026, 4, 25);
+const toCalendario = (evt) => {
+  const inicio = evt.dataHoraInicio.substring(11, 16);
+  const fim    = evt.dataHoraFim.substring(11, 16);
+  const data   = evt.dataHoraInicio.substring(0, 10);
+  return {
+    id:          evt.id,
+    data,
+    inicio,
+    fim,
+    tipo:        evt.tipo,
+    titulo:      evt.titulo,
+    status:      evt.status,
+    tecnico:     evt.tecnico?.nome    || '—',
+    tecnicoId:   evt.tecnico?.id      || null,
+    orientador:  evt.orientador?.nome || '—',
+    familia:     evt.familia?.codigoFamilia || '—',
+    familiaId:   evt.familia?.id      || null,
+    temConflito: evt.temConflito,
+  };
+};
+
+const getSegundaAtual = () => {
+  const hoje = new Date();
+  const dia  = hoje.getDay();
+  const diff = dia === 0 ? -6 : 1 - dia;
+  const seg  = new Date(hoje);
+  seg.setDate(hoje.getDate() + diff);
+  seg.setHours(0, 0, 0, 0);
+  return seg;
+};
+const BASE = getSegundaAtual();
 
 const getWeek = (offset) =>
   Array.from({ length: 7 }, (_, i) => {
@@ -66,33 +73,98 @@ const getWeek = (offset) =>
     return d;
   });
 
-/* ── Componente ── */
 const Agenda = () => {
   const [weekOff, setWeekOff]   = useState(0);
-  const [filtro, setFiltro]     = useState('Todos');
-  const [apts, setApts]         = useState(INIT);
+  const [filtroTec, setFiltroTec] = useState(null);
+  const [apts, setApts]         = useState([]);
+  const [tecnicos, setTecnicos] = useState([]);
+  const [orientadores, setOrientadores] = useState([]);
+  const [familias, setFamilias] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro]         = useState('');
   const [modal, setModal]       = useState(false);
-  const [selected, setSelected] = useState(null); // apt selecionado para ver detalhes
-  const [form, setForm]         = useState({
-    data: '2026-05-25', inicio: '09:00', fim: '10:00',
-    tipo: '', responsavel: '', tecnico: 'Ana Silva',
+  const [salvando, setSalvando] = useState(false);
+  const [selected, setSelected] = useState(null);
+  const [conflito, setConflito] = useState(null);
+
+  const [form, setForm] = useState({
+    data: fmtISO(new Date()), inicio: '09:00', fim: '10:00',
+    titulo: '', tipo: '', tecnicoId: '', orientadorId: '', familiaId: '',
   });
 
+  useEffect(() => {
+    const carregar = async () => {
+      setCarregando(true);
+      try {
+        const [evts, tecs, ors, fams] = await Promise.all([
+          listarEventos(),
+          listarTecnicos(),
+          listarOrientadores(),
+          listarFamilias(),
+        ]);
+        setApts(evts.filter(e => e.status !== 'CANCELADO').map(toCalendario));
+        setTecnicos(tecs);
+        setOrientadores(ors);
+        setFamilias(fams);
+      } catch (e) {
+        setErro('Erro ao carregar agenda. Verifique sua conexão.');
+      } finally {
+        setCarregando(false);
+      }
+    };
+    carregar();
+  }, []);
+
+  const tecIdx = (tecnicoId) => tecnicos.findIndex(t => t.id === tecnicoId);
+
   const week     = getWeek(weekOff);
+  const hoje     = fmtISO(new Date());
   const semLabel = `${fmtShort(week[0])} – ${fmtShort(week[6])} · ${week[6].toLocaleString('pt-BR',{month:'long'})} de ${week[6].getFullYear()}`;
 
-  const visibles = filtro === 'Todos' ? apts : apts.filter(a => a.tecnico === filtro);
+  const visibles = filtroTec === null ? apts : apts.filter(a => a.tecnicoId === filtroTec);
   const forDay   = (d) => { const s = fmtISO(d); return visibles.filter(a => a.data === s); };
 
-  const salvar = () => {
-    if (!form.tipo || !form.responsavel) return;
-    setApts(p => [...p, { ...form, id: Date.now() }]);
-    setModal(false);
-    setForm({ data: '2026-05-25', inicio: '09:00', fim: '10:00', tipo: '', responsavel: '', tecnico: 'Ana Silva' });
+  const salvar = async () => {
+    if (!form.titulo || !form.tipo) return;
+    setSalvando(true);
+    try {
+      const payload = {
+        titulo:       form.titulo,
+        tipo:         form.tipo,
+        dataHoraInicio: `${form.data}T${form.inicio}:00`,
+        dataHoraFim:    `${form.data}T${form.fim}:00`,
+        tecnicoId:    form.tecnicoId    ? Number(form.tecnicoId)    : null,
+        orientadorId: form.orientadorId ? Number(form.orientadorId) : null,
+        familiaId:    form.familiaId    ? Number(form.familiaId)    : null,
+      };
+
+      const criado = await criarEvento(payload);
+      setApts(p => [...p, toCalendario(criado)]);
+
+      if (criado.temConflito) {
+        setConflito(criado.conflitos);
+      }
+
+      setModal(false);
+      setForm({ data: fmtISO(new Date()), inicio: '09:00', fim: '10:00', titulo: '', tipo: '', tecnicoId: '', orientadorId: '', familiaId: '' });
+    } catch {
+      setErro('Erro ao salvar evento.');
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  const handleCancelar = async (id) => {
+    try {
+      await cancelarEvento(id);
+      setApts(p => p.filter(a => a.id !== id));
+      setSelected(null);
+    } catch {
+      setErro('Erro ao cancelar evento.');
+    }
   };
 
   const set = (f) => (e) => setForm(p => ({ ...p, [f]: e.target.value }));
-
   const hours = Array.from({ length: H_END - H_START }, (_, i) => H_START + i);
 
   return (
@@ -109,23 +181,43 @@ const Agenda = () => {
         </button>
       </div>
 
-      {/* ── SELETOR DE TÉCNICOS ── */}
+      {/* ── ERRO GLOBAL ── */}
+      {erro && (
+        <div className="ag-erro" onClick={() => setErro('')}>
+          ⚠ {erro} <span style={{ opacity: 0.6, fontSize: 11 }}>clique para fechar</span>
+        </div>
+      )}
+
+      {/* ── AVISO DE CONFLITO ── */}
+      {conflito && (
+        <div className="ag-conflito">
+          <strong>⚠ Conflito de horário detectado!</strong> O evento foi salvo, mas há sobreposição com:
+          {conflito.map((c, i) => (
+            <span key={i}> "{c.titulo}" ({c.usuarioConflitante})</span>
+          ))}
+          <button onClick={() => setConflito(null)}>✕</button>
+        </div>
+      )}
+
+      {/* ── FILTRO DE TÉCNICOS ── */}
       <div className="ag-bar">
-        {TECNICOS.map(t => {
-          const ativo = filtro === t;
+        <button
+          className={`ag-tec-btn${filtroTec === null ? ' ag-tec-btn--on' : ''}`}
+          onClick={() => setFiltroTec(null)}
+        >
+          Todos
+        </button>
+        {tecnicos.map((t, i) => {
+          const ativo = filtroTec === t.id;
           return (
             <button
-              key={t}
+              key={t.id}
               className={`ag-tec-btn${ativo ? ' ag-tec-btn--on' : ''}`}
-              style={ativo && t !== 'Todos'
-                ? { background: COR[t], borderColor: COR[t], color: '#fff' }
-                : {}}
-              onClick={() => setFiltro(t)}
+              style={ativo ? { background: getCor(i), borderColor: getCor(i), color: '#fff' } : {}}
+              onClick={() => setFiltroTec(t.id)}
             >
-              {t !== 'Todos' && (
-                <span className="ag-tec-dot" style={{ background: ativo ? '#fff' : COR[t] }} />
-              )}
-              {t}
+              <span className="ag-tec-dot" style={{ background: ativo ? '#fff' : getCor(i) }} />
+              {t.nome}
             </button>
           );
         })}
@@ -134,7 +226,7 @@ const Agenda = () => {
       {/* ── CALENDÁRIO ── */}
       <div className="ag-card">
 
-        {/* Navegação */}
+        {/* Navegação de semana */}
         <div className="ag-nav">
           <button className="ag-nav-btn" onClick={() => setWeekOff(o => o - 1)}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -152,97 +244,102 @@ const Agenda = () => {
           )}
         </div>
 
-        {/* Grade */}
-        <div className="ag-grid-outer">
+        {/* Estado de carregamento */}
+        {carregando ? (
+          <div className="ag-loading">Carregando agenda...</div>
+        ) : (
+          <div className="ag-grid-outer">
 
-          {/* Coluna de horas */}
-          <div className="ag-h-col">
-            <div className="ag-h-top" /> {/* espaço do header dos dias */}
-            {hours.map(h => (
-              <div key={h} className="ag-h-slot" style={{ height: H_PX }}>
-                <span>{String(h).padStart(2,'0')}:00</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Colunas dos dias */}
-          <div className="ag-days">
-            {week.map((date, i) => {
-              const isHoje = fmtISO(date) === '2026-05-25';
-              const dayApts = forDay(date);
-              return (
-                <div key={i} className="ag-day">
-
-                  {/* Header do dia */}
-                  <div className={`ag-day-hd${isHoje ? ' ag-day-hd--hoje' : ''}`}>
-                    <span className="ag-day-name">{DIAS_PT[i]}</span>
-                    <span className={`ag-day-num${isHoje ? ' ag-day-num--hoje' : ''}`}>
-                      {date.getDate()}
-                    </span>
-                  </div>
-
-                  {/* Corpo com linhas e agendamentos */}
-                  <div className="ag-day-body" style={{ height: TOTAL_PX }}>
-                    {hours.map(h => (
-                      <div
-                        key={h}
-                        className="ag-line"
-                        style={{ top: (h - H_START) * H_PX }}
-                      />
-                    ))}
-
-                    {dayApts.map(apt => (
-                      <div
-                        key={apt.id}
-                        className="ag-apt"
-                        style={{
-                          top:             topPx(apt.inicio),
-                          height:          heightPx(apt.inicio, apt.fim),
-                          background:      COR_BG[apt.tecnico] || '#f0f4ff',
-                          borderLeftColor: COR[apt.tecnico]    || '#1d4ed8',
-                        }}
-                        onClick={() => setSelected(apt)}
-                      >
-                        <span className="ag-apt-time">{apt.inicio}–{apt.fim}</span>
-                        <span className="ag-apt-resp">{apt.responsavel}</span>
-                        {heightPx(apt.inicio, apt.fim) > 44 && (
-                          <span className="ag-apt-tipo">{apt.tipo}</span>
-                        )}
-                        {filtro === 'Todos' && heightPx(apt.inicio, apt.fim) > 56 && (
-                          <span className="ag-apt-tec" style={{ color: COR[apt.tecnico] }}>
-                            {apt.tecnico}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+            {/* Coluna de horas */}
+            <div className="ag-h-col">
+              <div className="ag-h-top" />
+              {hours.map(h => (
+                <div key={h} className="ag-h-slot" style={{ height: H_PX }}>
+                  <span>{String(h).padStart(2,'0')}:00</span>
                 </div>
-              );
-            })}
+              ))}
+            </div>
+
+            {/* Colunas dos dias */}
+            <div className="ag-days">
+              {week.map((date, i) => {
+                const isHoje = fmtISO(date) === hoje;
+                const dayApts = forDay(date);
+                return (
+                  <div key={i} className="ag-day">
+                    <div className={`ag-day-hd${isHoje ? ' ag-day-hd--hoje' : ''}`}>
+                      <span className="ag-day-name">{DIAS_PT[i]}</span>
+                      <span className={`ag-day-num${isHoje ? ' ag-day-num--hoje' : ''}`}>
+                        {date.getDate()}
+                      </span>
+                    </div>
+
+                    <div className="ag-day-body" style={{ height: TOTAL_PX }}>
+                      {hours.map(h => (
+                        <div key={h} className="ag-line" style={{ top: (h - H_START) * H_PX }} />
+                      ))}
+                      {dayApts.map(apt => {
+                        const idx = tecIdx(apt.tecnicoId);
+                        const cancelado = apt.status === 'CANCELADO';
+                        return (
+                          <div
+                            key={apt.id}
+                            className={`ag-apt${cancelado ? ' ag-apt--cancelado' : ''}`}
+                            style={{
+                              top:             topPx(apt.inicio),
+                              height:          heightPx(apt.inicio, apt.fim),
+                              background:      cancelado ? '#f3f4f6' : getCorBg(idx),
+                              borderLeftColor: cancelado ? '#d1d5db' : getCor(idx),
+                            }}
+                            onClick={() => setSelected(apt)}
+                          >
+                            <span className="ag-apt-time">{apt.inicio}–{apt.fim}</span>
+                            <span className="ag-apt-resp">{apt.titulo}</span>
+                            {heightPx(apt.inicio, apt.fim) > 44 && (
+                              <span className="ag-apt-tipo">{apt.tipo}</span>
+                            )}
+                            {filtroTec === null && heightPx(apt.inicio, apt.fim) > 56 && (
+                              <span className="ag-apt-tec" style={{ color: getCor(idx) }}>
+                                {apt.tecnico}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* ── MODAL: Ver detalhes de um apt ── */}
+      {/* ── MODAL: Detalhes do evento ── */}
       {selected && (
         <div className="ag-overlay" onClick={() => setSelected(null)}>
           <div className="ag-modal ag-modal--sm" onClick={e => e.stopPropagation()}>
             <div className="ag-modal-hd">
-              <span
-                className="ag-modal-dot"
-                style={{ background: COR[selected.tecnico] || '#1d4ed8' }}
-              />
-              <h2 className="ag-modal-title">{selected.tipo}</h2>
+              <span className="ag-modal-dot" style={{ background: getCor(tecIdx(selected.tecnicoId)) }} />
+              <h2 className="ag-modal-title">{selected.titulo}</h2>
               <button className="ag-modal-close" onClick={() => setSelected(null)}>✕</button>
             </div>
             <div className="ag-modal-body">
               <div className="ag-detail-row">
-                <span className="ag-detail-key">Responsável</span>
-                <span className="ag-detail-val">{selected.responsavel}</span>
+                <span className="ag-detail-key">Tipo</span>
+                <span className="ag-detail-val">{selected.tipo}</span>
               </div>
               <div className="ag-detail-row">
                 <span className="ag-detail-key">Técnico</span>
-                <span className="ag-detail-val" style={{ color: COR[selected.tecnico] }}>{selected.tecnico}</span>
+                <span className="ag-detail-val" style={{ color: getCor(tecIdx(selected.tecnicoId)) }}>{selected.tecnico}</span>
+              </div>
+              <div className="ag-detail-row">
+                <span className="ag-detail-key">Orientador</span>
+                <span className="ag-detail-val">{selected.orientador}</span>
+              </div>
+              <div className="ag-detail-row">
+                <span className="ag-detail-key">Família</span>
+                <span className="ag-detail-val">{selected.familia}</span>
               </div>
               <div className="ag-detail-row">
                 <span className="ag-detail-key">Data</span>
@@ -252,15 +349,24 @@ const Agenda = () => {
                 <span className="ag-detail-key">Horário</span>
                 <span className="ag-detail-val">{selected.inicio} – {selected.fim}</span>
               </div>
+              <div className="ag-detail-row">
+                <span className="ag-detail-key">Status</span>
+                <span className={`ag-badge ag-badge--${selected.status.toLowerCase()}`}>{selected.status}</span>
+              </div>
             </div>
             <div className="ag-modal-ft">
+              {selected.status !== 'CANCELADO' && (
+                <button className="btn-danger" onClick={() => handleCancelar(selected.id)}>
+                  Cancelar evento
+                </button>
+              )}
               <button className="btn-secondary" onClick={() => setSelected(null)}>Fechar</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── MODAL: Marcar novo atendimento ── */}
+      {/* ── MODAL: Novo evento ── */}
       {modal && (
         <div className="ag-overlay" onClick={() => setModal(false)}>
           <div className="ag-modal" onClick={e => e.stopPropagation()}>
@@ -270,17 +376,21 @@ const Agenda = () => {
             </div>
 
             <div className="ag-modal-body">
-              {/* Data + Técnico */}
+              {/* Título */}
+              <div className="ag-field">
+                <label className="ag-label">Título *</label>
+                <input type="text" className="ag-input" placeholder="Ex: Triagem inicial" value={form.titulo} onChange={set('titulo')} />
+              </div>
+
+              {/* Data + Tipo */}
               <div className="ag-form-row2">
                 <div className="ag-field">
-                  <label className="ag-label">Data</label>
+                  <label className="ag-label">Data *</label>
                   <input type="date" className="ag-input" value={form.data} onChange={set('data')} />
                 </div>
                 <div className="ag-field">
-                  <label className="ag-label">Técnico</label>
-                  <select className="ag-input" value={form.tecnico} onChange={set('tecnico')}>
-                    {TECNICOS.filter(t => t !== 'Todos').map(t => <option key={t}>{t}</option>)}
-                  </select>
+                  <label className="ag-label">Tipo *</label>
+                  <input type="text" className="ag-input" placeholder="Ex: Atendimento" value={form.tipo} onChange={set('tipo')} />
                 </div>
               </div>
 
@@ -296,21 +406,30 @@ const Agenda = () => {
                 </div>
               </div>
 
-              {/* Tipo */}
+              {/* Técnico */}
               <div className="ag-field">
-                <label className="ag-label">Tipo de atendimento</label>
-                <select className="ag-input" value={form.tipo} onChange={set('tipo')}>
-                  <option value="">Selecione o tipo...</option>
-                  {TIPOS.map(t => <option key={t}>{t}</option>)}
+                <label className="ag-label">Técnico</label>
+                <select className="ag-input" value={form.tecnicoId} onChange={set('tecnicoId')}>
+                  <option value="">Sem técnico</option>
+                  {tecnicos.map(t => <option key={t.id} value={t.id}>{t.nome}</option>)}
                 </select>
               </div>
 
-              {/* Responsável */}
+              {/* Orientador */}
               <div className="ag-field">
-                <label className="ag-label">Responsável pela família</label>
-                <select className="ag-input" value={form.responsavel} onChange={set('responsavel')}>
-                  <option value="">Selecione o responsável...</option>
-                  {RESPONSAVEIS.map(r => <option key={r}>{r}</option>)}
+                <label className="ag-label">Orientador</label>
+                <select className="ag-input" value={form.orientadorId} onChange={set('orientadorId')}>
+                  <option value="">Sem orientador</option>
+                  {orientadores.map(o => <option key={o.id} value={o.id}>{o.nome}</option>)}
+                </select>
+              </div>
+
+              {/* Família */}
+              <div className="ag-field">
+                <label className="ag-label">Família</label>
+                <select className="ag-input" value={form.familiaId} onChange={set('familiaId')}>
+                  <option value="">Sem família</option>
+                  {familias.map(f => <option key={f.id} value={f.id}>{f.nomeRepresentante || f.codigoFamilia || `Família ${f.id}`}</option>)}
                 </select>
               </div>
             </div>
@@ -320,10 +439,10 @@ const Agenda = () => {
               <button
                 className="btn-primary"
                 onClick={salvar}
-                disabled={!form.tipo || !form.responsavel}
-                style={{ opacity: (!form.tipo || !form.responsavel) ? 0.5 : 1 }}
+                disabled={salvando || !form.titulo || !form.tipo}
+                style={{ opacity: (!form.titulo || !form.tipo) ? 0.5 : 1 }}
               >
-                Marcar
+                {salvando ? 'Salvando...' : 'Marcar'}
               </button>
             </div>
           </div>
