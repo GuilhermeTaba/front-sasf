@@ -201,7 +201,6 @@ const PlanoDesenvolvimento = () => {
       dataDesligamento:         parseDateBR(form.dataDesligamento),
       tecnico:                  form.tecnico || null,
     };
-    console.log('[PlanoDesenvolvimento] payload enviado:', JSON.stringify(payload, null, 2));
     const endpoint = planoId
       ? `${API_URL}/familias/${id}/desenvolvimentos/${planoId}`
       : `${API_URL}/familias/${id}/desenvolvimentos`;
@@ -217,7 +216,6 @@ const PlanoDesenvolvimento = () => {
       if (!res.ok) {
         let detail = `Erro ${res.status}`;
         try { const body = await res.json(); detail = JSON.stringify(body); } catch {}
-        console.error('[PlanoDesenvolvimento] erro backend:', detail);
         throw new Error(detail);
       }
       navigate(`/detalhes-familia/${id}`, { state: { tab: 'planoDesenvolvimento' } });

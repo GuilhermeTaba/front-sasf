@@ -171,7 +171,7 @@ const PlanoDesenvolvimentoPDU = () => {
         });
         setAcoesProposta(pad(d.acoesPropostas?.split('\n'), 6));
         setAcoesPactuadas(pad(d.acoesPactuadas?.split('\n'), 7));
-        setAcoesInterseto(pad(d.acoesIntersetorais?.split('\n'), 6));
+        setAcoesInterseto(pad(d.acoesIntersetoriais?.split('\n'), 6));
         if (d.itens?.length) {
           setItens(d.itens.map(it => ({
             situacoesDeAgravoIdentificadas: it.situacoesDeAgravoIdentificadas || '',
@@ -259,7 +259,7 @@ const PlanoDesenvolvimentoPDU = () => {
       situacaoAgravo,
       acoesPropostas:          acoesProposta.filter(Boolean).join('\n') || null,
       acoesPactuadas:          acoesPactuadas.filter(Boolean).join('\n') || null,
-      acoesIntersetorais:      acoesInterseto.filter(Boolean).join('\n') || null,
+      acoesIntersetoriais:     acoesInterseto.filter(Boolean).join('\n') || null,
       itens:                   itensFiltered.length > 0 ? itensFiltered : null,
       numeroPlano:             form.numeroPlano || null,
       dataElaboracaoPlano:     parseDateBR(form.dataElaboracao),
@@ -284,7 +284,6 @@ const PlanoDesenvolvimentoPDU = () => {
       });
       if (!res.ok) {
         const body = await res.text();
-        console.error('PDU error:', body);
         throw new Error(`Erro ${res.status}`);
       }
       navigate(`/detalhes-familia/${id}`, { state: { tab: 'planoPDU' } });

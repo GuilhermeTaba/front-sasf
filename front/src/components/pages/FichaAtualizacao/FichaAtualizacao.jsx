@@ -32,10 +32,11 @@ const FichaAtualizacao = () => {
   const [familia, setFamilia] = useState(null);
 
   const [form, setForm] = useState({
-    nascResp:    '',
-    nis:         '',
-    cpf:         '',
-    matricula:   '',
+    nascResp:         '',
+    nis:              '',
+    cpf:              '',
+    matricula:        '',
+    nomeSocial:       '',
     /* faixa etária */
     fx0a5:   '', fx6a14: '', fx15a17: '', fx18a29: '',
     fx30a59: '', fx60m:  '', nPcd:    '',
@@ -100,6 +101,7 @@ const FichaAtualizacao = () => {
         setForm(f => ({
           ...f,
           matricula:          data.numeroMatricula || '',
+          nomeSocial:         data.nomeSocialRepresentante || '',
           nascResp:           toDateBR(data.dataNascimento),
           nis:                data.nis || '',
           cpf:                data.cpf || '',
@@ -205,7 +207,7 @@ const FichaAtualizacao = () => {
     const payload = {
       numeroMatricula: form.matricula,
       nomeRepresentanteFamilia: familia?.responsavel || '',
-      nomeSocialRepresentante: null,
+      nomeSocialRepresentante: form.nomeSocial || null,
       nis: form.nis,
       cpf: form.cpf,
       dataNascimento: parseDateBR(form.nascResp),
@@ -259,7 +261,6 @@ const FichaAtualizacao = () => {
       ? `${API_URL}/familias/${id}/atualizacoes/${fichaId}`
       : `${API_URL}/familias/${id}/atualizacoes`;
     const method = fichaId ? 'PUT' : 'POST';
-    console.log(`[FichaAtualizacao] ${method}`, endpoint, payload);
     try {
       const res = await fetch(endpoint, {
         method,
@@ -318,7 +319,7 @@ const FichaAtualizacao = () => {
 
         {/* ── IDENTIFICAÇÃO ── */}
         <SectionTitle>Identificação da Família</SectionTitle>
-        <div className="fa-grid-4">
+        <div className="fa-grid-4" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
           <div className="fa-field">
             <label>Data de Nasc. do Responsável</label>
             <input name="nascResp" value={form.nascResp} onChange={handle} placeholder="dd/mm/aaaa" className="fa-input" />
@@ -334,6 +335,10 @@ const FichaAtualizacao = () => {
           <div className="fa-field">
             <label>Matrícula</label>
             <input name="matricula" value={form.matricula} onChange={handle} placeholder="Nº Matrícula" className="fa-input" />
+          </div>
+          <div className="fa-field" style={{ gridColumn: '1 / -1' }}>
+            <label>Nome Social do Responsável</label>
+            <input name="nomeSocial" value={form.nomeSocial} onChange={handle} placeholder="Nome social (se houver)" className="fa-input" />
           </div>
         </div>
 

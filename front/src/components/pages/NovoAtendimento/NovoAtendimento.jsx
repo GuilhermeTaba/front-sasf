@@ -213,17 +213,12 @@ const NovoAtendimento = () => {
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
 
   const handleSave = async () => {
-    console.log('[NovoAtendimento] handleSave chamado');
     const fid = familiaId || selectedFamiliaId;
-    console.log('[NovoAtendimento] familiaId URL:', familiaId, '| selectedFamiliaId:', selectedFamiliaId, '| fid usado:', fid);
-    console.log('[NovoAtendimento] form:', form);
-
     setSaving(true);
     setSaveError('');
     try {
       let endpoint, method;
       if (!fid) {
-        console.warn('[NovoAtendimento] nenhuma família selecionada — abortando');
         setSaveError('Selecione uma família antes de salvar.');
         setSaving(false);
         return;
@@ -244,9 +239,6 @@ const NovoAtendimento = () => {
         tecnicoId:       form.tecnicoId ? Number(form.tecnicoId) : null,
       };
 
-      console.log('[NovoAtendimento]', method, endpoint);
-      console.log('[NovoAtendimento] payload:', JSON.stringify(payload, null, 2));
-
       const res = await fetch(endpoint, {
         method,
         headers: {
@@ -256,19 +248,16 @@ const NovoAtendimento = () => {
         body: JSON.stringify(payload),
       });
 
-      console.log('[NovoAtendimento] response status:', res.status);
       if (!res.ok) {
         let msg = `Erro ${res.status}`;
         try {
           const body = await res.json();
-          console.error('[NovoAtendimento] erro backend:', JSON.stringify(body, null, 2));
           msg = body.message || body.error || body.detalhe || body.errors?.[0]?.defaultMessage || JSON.stringify(body);
         } catch { /* body não é JSON */ }
         throw new Error(msg);
       }
       navigate(fid ? `/detalhes-familia/${fid}` : '/atendimentos', { state: { tab: 'atendimentos' } });
     } catch (e) {
-      console.error('[NovoAtendimento] catch:', e.message);
       setSaveError(e.message);
     } finally {
       setSaving(false);
