@@ -152,6 +152,22 @@ const DetalhesFamilia = () => {
       })
       .catch(() => {});
 
+    fetch(`${API_URL}/familias/${id}/desenvolvimentos`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(list => {
+        const items = Array.isArray(list) ? list : (list ? [list] : []);
+        if (!items.length) return;
+        setListas(prev => ({
+          ...prev,
+          planoDesenvolvimento: items.map(data => ({
+            id:   data.id,
+            data: toDateBR(data.dataElaboracaoPlano) || '—',
+            tecnico: data.tecnico || '—',
+          })),
+        }));
+      })
+      .catch(() => {});
+
     fetch(`${API_URL}/familias/${id}/termos-autorizacao`, { headers })
       .then(r => r.ok ? r.json() : null)
       .then(list => {
@@ -292,6 +308,7 @@ const DetalhesFamilia = () => {
       itemLabel:    'Plano de Desenvolvimento',
       novaLabel:    'Novo Plano de Desenvolvimento',
       novaPath:     `/plano-desenvolvimento/${id}`,
+      itemPath:     (item) => `/plano-desenvolvimento/${id}/${item.id}`,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
@@ -604,12 +621,16 @@ const DetalhesFamilia = () => {
                     )}
                   </div>
 
-                  {(selected === 'cadastral' || selected === 'termo' || selected === 'visita') && (() => {
+                  {(selected === 'cadastral' || selected === 'termo' || selected === 'visita' || selected === 'atualizacao' || selected === 'planoDesenvolvimento') && (() => {
                     const pdfUrl = selected === 'cadastral'
                       ? `${API_URL}/familias/${id}/cadastro/${item.id}/pdf`
                       : selected === 'visita'
                         ? `${API_URL}/familias/${id}/visitas/${item.id}/pdf`
-                        : `${API_URL}/familias/${id}/termos-autorizacao/${item.id}/pdf`;
+                        : selected === 'atualizacao'
+                          ? `${API_URL}/familias/${id}/atualizacoes/${item.id}/pdf`
+                          : selected === 'planoDesenvolvimento'
+                            ? `${API_URL}/familias/${id}/desenvolvimentos/${item.id}/pdf`
+                            : `${API_URL}/familias/${id}/termos-autorizacao/${item.id}/pdf`;
                     return (
                       <a
                         href={pdfUrl}

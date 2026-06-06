@@ -5,6 +5,7 @@ import '../FichaAtualizacao/FichaAtualizacao.css';
 import '../NovoCadastro/NovosCadastro.css';
 import './PlanoDesenvolvimento.css';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 const ANALISE_ITENS = [
   { key: 'composicao', label: 'Composição Familiar' },
@@ -16,63 +17,134 @@ const ANALISE_ITENS = [
 
 const emptyAcao = () => ({ estrategia: '', acaoCras: '', acaoFamilia: '', prazo: '', resultado: '' });
 
+const emptyForm = () => ({
+  servico: 'SASF Chico Mendes',
+  cas: '', cras: '',
+  representante: '',
+  matricula: '', nis: '', rg: '',
+  composicao: '', moradia: '', saude: '', educacao: '', divida: '',
+  objetivo: '',
+  planoNum: '', dataElaboracao: '', dataValidade: '',
+  dataReavaliacao: '', dataDesligamento: '',
+  tecnico: '',
+});
+
 const SectionTitle = ({ children }) => (
   <div className="fa-section-divider">
     <span className="fa-section-label">{children}</span>
   </div>
 );
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-
-const parseDateBRpd = (str) => {
+const parseDateBR = (str) => {
   if (!str) return null;
   const p = str.split('/');
-  if (p.length === 3 && p[2].length === 4) return `${p[2]}-${p[1]}-${p[0]}`;
+  if (p.length === 3 && p[2].length === 4) {
+    const d = parseInt(p[0]), m = parseInt(p[1]), y = parseInt(p[2]);
+    if (m < 1 || m > 12 || d < 1 || d > 31 || y < 1900 || y > 2100) return null;
+    return `${p[2]}-${p[1]}-${p[0]}`;
+  }
   if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
   return null;
 };
 
-const PlanoDesenvolvimento = () => {
-  const { id }   = useParams();
-  const navigate = useNavigate();
-  const [familia, setFamilia] = useState(null);
+const toDateBR = (iso) => {
+  if (!iso) return '';
+  const p = iso.split('-');
+  return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
+};
 
-  const [form, setForm] = useState({
-    servico: 'SASF Chico Mendes',
-    cas: '', cras: '',
-    representante: '',
-    matricula: '', nis: '', rg: '',
-    composicao: '', moradia: '', saude: '', educacao: '', divida: '',
-    objetivo: '',
-    planoNum: '', dataElaboracao: '', dataValidade: '',
-    dataReavaliacao: '', dataDesligamento: '',
-    tecnicoId: '',
-    assinatura: '',
+const parseAnalise = (str) => {
+  const result = { composicao: '', moradia: '', saude: '', educacao: '', divida: '' };
+  if (!str) return result;
+  str.split('\n').forEach(line => {
+    if (line.startsWith('Composição Familiar: ')) result.composicao = line.slice('Composição Familiar: '.length);
+    else if (line.startsWith('Moradia: '))   result.moradia   = line.slice('Moradia: '.length);
+    else if (line.startsWith('Saúde: '))     result.saude     = line.slice('Saúde: '.length);
+    else if (line.startsWith('Educação: '))  result.educacao  = line.slice('Educação: '.length);
+    else if (line.startsWith('Dívida: '))    result.divida    = line.slice('Dívida: '.length);
   });
+  return result;
+};
 
-  const [acoes, setAcoes] = useState(Array.from({ length: 8 }, emptyAcao));
-  const [saving, setSaving] = useState(false);
-  const [error, setError]   = useState('');
+const PlanoDesenvolvimento = () => {
+  const { id, planoId } = useParams();
+  const navigate = useNavigate();
+
+  const [familia,  setFamilia]  = useState(null);
   const [tecnicos, setTecnicos] = useState([]);
+  const [form,     setForm]     = useState(emptyForm());
+  const [acoes,    setAcoes]    = useState(Array.from({ length: 8 }, emptyAcao));
+  const [saving,   setSaving]   = useState(false);
+  const [error,    setError]    = useState('');
 
   useEffect(() => {
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+
     fetch(`${API_URL}/tecnicos`, { headers })
       .then(r => r.ok ? r.json() : [])
       .then(data => setTecnicos(Array.isArray(data) ? data : []))
       .catch(() => {});
-    if (id) {
-      fetch(`${API_URL}/familias/${id}`, { headers })
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (!data) return;
-          const responsavel = data.nomeRepresentante || data.nomeRepresentanteFamilia || '';
-          setFamilia({ id: data.id, responsavel });
-          setForm(f => ({ ...f, representante: responsavel }));
-        })
-        .catch(() => {});
+
+    if (!id) return;
+
+    fetch(`${API_URL}/familias/${id}`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        const responsavel = data.nomeRepresentante || data.nomeRepresentanteFamilia || '';
+        setFamilia({ id: data.id, responsavel });
+        if (!planoId) setForm(f => ({ ...f, representante: responsavel }));
+      })
+      .catch(() => {});
+
+    if (!planoId) {
+      setForm(emptyForm());
+      setAcoes(Array.from({ length: 8 }, emptyAcao));
+      return;
     }
-  }, [id]);
+
+    fetch(`${API_URL}/familias/${id}/desenvolvimentos/${planoId}`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        const analise = parseAnalise(data.analiseDiagnostica);
+        setForm({
+          servico:        data.nomeServicoSASF       || 'SASF Chico Mendes',
+          cas:            data.CAS                   || '',
+          cras:           data.CRAS                  || '',
+          representante:  data.nomeRepresentanteFamilia || '',
+          matricula:      data.numeroMatricula        || '',
+          nis:            data.numeroNIS_BDC          || '',
+          rg:             data.numeroRG               || '',
+          composicao:     analise.composicao,
+          moradia:        analise.moradia,
+          saude:          analise.saude,
+          educacao:       analise.educacao,
+          divida:         analise.divida,
+          objetivo:       data.objetivo              || '',
+          planoNum:       data.numeroPlano           || '',
+          dataElaboracao: toDateBR(data.dataElaboracaoPlano),
+          dataValidade:   toDateBR(data.dataValidadePlano),
+          dataReavaliacao: toDateBR(data.dataReavaliacaoPlano),
+          dataDesligamento: toDateBR(data.dataDesligamento),
+          tecnico:        data.tecnico               || '',
+        });
+        if (data.itens?.length) {
+          const novos = Array.from({ length: 8 }, emptyAcao);
+          data.itens.forEach((item, i) => {
+            if (i < novos.length) novos[i] = {
+              estrategia:  item.estrategiasIntervencao || '',
+              acaoCras:    item.CRAS                   || '',
+              acaoFamilia: item.familia                || '',
+              prazo:       item.prazo                  || '',
+              resultado:   item.resultadosEsperados    || '',
+            };
+          });
+          setAcoes(novos);
+        }
+      })
+      .catch(() => {});
+  }, [id, planoId]);
 
   const maskDate = v => {
     const d = v.replace(/\D/g, '').slice(0, 8);
@@ -101,43 +173,53 @@ const PlanoDesenvolvimento = () => {
       form.educacao   && `Educação: ${form.educacao}`,
       form.divida     && `Dívida: ${form.divida}`,
     ].filter(Boolean).join('\n');
-    const itens = acoes.filter(a => a.estrategia || a.acaoCras || a.acaoFamilia).map(a => ({
-      estrategiasIntervencao: a.estrategia,
-      CRAS: a.acaoCras,
-      familia: a.acaoFamilia,
-      prazo: a.prazo,
-      resultadosEsperados: a.resultado,
-    }));
+    const itensFiltered = acoes
+      .filter(a => a.estrategia || a.acaoCras || a.acaoFamilia || a.prazo || a.resultado)
+      .map(a => ({
+        estrategiasIntervencao: a.estrategia  || null,
+        CRAS:                   a.acaoCras    || null,
+        familia:                a.acaoFamilia || null,
+        prazo:                  a.prazo       || null,
+        resultadosEsperados:    a.resultado   || null,
+      }));
+    const itens = itensFiltered.length > 0 ? itensFiltered : null;
     const payload = {
-      nomeServicoSASF: form.servico,
-      CAS: form.cas,
-      CRAS: form.cras,
+      nomeServicoSASF:          form.servico,
+      CAS:                      form.cas,
+      CRAS:                     form.cras,
       nomeRepresentanteFamilia: form.representante,
-      numeroMatricula: form.matricula,
-      numeroNIS_BDC: form.nis,
-      numeroRG: form.rg,
+      numeroMatricula:          form.matricula,
+      numeroNIS_BDC:            form.nis,
+      numeroRG:                 form.rg,
       analiseDiagnostica,
-      objetivo: form.objetivo,
+      objetivo:                 form.objetivo,
       itens,
-      numeroPlano: form.planoNum,
-      dataElaboracaoPlano: parseDateBRpd(form.dataElaboracao),
-      dataValidadePlano: parseDateBRpd(form.dataValidade),
-      dataReavaliacaoPlano: parseDateBRpd(form.dataReavaliacao),
-      dataDesligamento: parseDateBRpd(form.dataDesligamento),
-      tecnico: tecnicos.find(t => String(t.id) === form.tecnicoId)?.nome || null,
-      imagemAssinaturaURL: form.assinatura,
+      numeroPlano:              form.planoNum,
+      dataElaboracaoPlano:      parseDateBR(form.dataElaboracao),
+      dataValidadePlano:        parseDateBR(form.dataValidade),
+      dataReavaliacaoPlano:     parseDateBR(form.dataReavaliacao),
+      dataDesligamento:         parseDateBR(form.dataDesligamento),
+      tecnico:                  form.tecnico || null,
     };
-    console.log('[PlanoDesenvolvimento] POST payload:', payload);
+    console.log('[PlanoDesenvolvimento] payload enviado:', JSON.stringify(payload, null, 2));
+    const endpoint = planoId
+      ? `${API_URL}/familias/${id}/desenvolvimentos/${planoId}`
+      : `${API_URL}/familias/${id}/desenvolvimentos`;
     try {
-      const res = await fetch(`${API_URL}/familias/${id}/desenvolvimentos`, {
-        method: 'POST',
+      const res = await fetch(endpoint, {
+        method: planoId ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      if (!res.ok) {
+        let detail = `Erro ${res.status}`;
+        try { const body = await res.json(); detail = JSON.stringify(body); } catch {}
+        console.error('[PlanoDesenvolvimento] erro backend:', detail);
+        throw new Error(detail);
+      }
       navigate(`/detalhes-familia/${id}`, { state: { tab: 'planoDesenvolvimento' } });
     } catch (e) {
       setError(e.message);
@@ -148,7 +230,6 @@ const PlanoDesenvolvimento = () => {
 
   return (
     <Layout>
-      {/* breadcrumb */}
       <div className="breadcrumb">
         <Link to="/familias" className="bc-link">Famílias</Link>
         {familia && (
@@ -161,7 +242,6 @@ const PlanoDesenvolvimento = () => {
         <span className="bc-current">Plano de Desenvolvimento Familiar</span>
       </div>
 
-      {/* header */}
       <div className="page-header" style={{ marginBottom: 20 }}>
         <div>
           <p className="page-section" style={{ color: '#0d9488', fontWeight: 700 }}>Desenvolvimento familiar</p>
@@ -172,7 +252,6 @@ const PlanoDesenvolvimento = () => {
 
       <div className="form-card">
 
-        {/* ── FL. 1/2 ── */}
         <SectionTitle>Identificação — Fl. 1/2</SectionTitle>
         <div className="fa-grid-3">
           <div className="fa-field">
@@ -232,7 +311,6 @@ const PlanoDesenvolvimento = () => {
             placeholder="Descreva o objetivo do plano de desenvolvimento familiar..." />
         </div>
 
-        {/* ── FL. 2/2 ── */}
         <SectionTitle>Estratégias e Ações — Fl. 2/2</SectionTitle>
         <div className="fa-table-wrap">
           <table className="fa-table pd-table">
@@ -264,7 +342,7 @@ const PlanoDesenvolvimento = () => {
           </table>
         </div>
 
-        <SectionTitle>Datas e Assinaturas</SectionTitle>
+        <SectionTitle>Datas e Técnico</SectionTitle>
         <div className="fa-grid-3">
           <div className="fa-field">
             <label>Plano Nº</label>
@@ -286,20 +364,14 @@ const PlanoDesenvolvimento = () => {
             <label>Data de Desligamento</label>
             <input name="dataDesligamento" value={form.dataDesligamento} onChange={handle} placeholder="dd/mm/aaaa" className="fa-input" />
           </div>
-        </div>
-        <div className="fa-grid-2" style={{ marginTop: 14 }}>
           <div className="fa-field">
-            <label>Técnico de Referência do Atendimento</label>
-            <select name="tecnicoId" value={form.tecnicoId} onChange={handle} className="fa-input">
+            <label>Técnico de Referência</label>
+            <select name="tecnico" value={form.tecnico} onChange={handle} className="fa-input">
               <option value="">Selecione um técnico...</option>
               {tecnicos.map(t => (
-                <option key={t.id} value={t.id}>{t.nome}</option>
+                <option key={t.id} value={t.nome}>{t.nome}</option>
               ))}
             </select>
-          </div>
-          <div className="fa-field">
-            <label>Assinatura do Responsável pela Família</label>
-            <input name="assinatura" value={form.assinatura} onChange={handle} placeholder="Nome para assinatura" className="fa-input" />
           </div>
         </div>
 
@@ -312,7 +384,7 @@ const PlanoDesenvolvimento = () => {
               strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            {saving ? 'Salvando…' : 'Salvar plano de desenvolvimento'}
+            {saving ? 'Salvando…' : planoId ? 'Salvar alterações' : 'Salvar plano de desenvolvimento'}
           </button>
         </div>
 
