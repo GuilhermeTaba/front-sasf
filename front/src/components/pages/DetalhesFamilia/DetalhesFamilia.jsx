@@ -498,26 +498,29 @@ const DetalhesFamilia = () => {
       </div>
 
       {/* CABEÇALHO + GESTÃO */}
-      <div className="det-header-card">
-        <div className="det-header-left">
+      <div className="det-header-card" style={{ borderTopColor: statusInfo.color }}>
+
+        {/* Linha superior: identidade da família */}
+        <div className="det-header-top">
           <div className="det-avatar" style={{ background: avatarBg }}>
             {familia.responsavel.charAt(0)}
           </div>
-          <div>
-            <h1 className="det-nome">{familia.responsavel}</h1>
+          <div className="det-header-info">
+            <div className="det-header-info-row">
+              <h1 className="det-nome">{familia.responsavel}</h1>
+              <span className="status-chip" style={{ background: statusInfo.bg, color: statusInfo.color }}>
+                {statusInfo.label}
+              </span>
+            </div>
             <p className="det-sub">
               {familia.regiao}
               {familia.membros ? ` · ${familia.membros} membros` : ''}
               {familia.tel && familia.tel !== '—' ? ` · ${familia.tel}` : ''}
             </p>
-            <span className="status-chip" style={{ background: statusInfo.bg, color: statusInfo.color, marginTop: 6, display: 'inline-flex' }}>
-              {statusInfo.label}
-            </span>
           </div>
         </div>
 
-        <div className="det-header-divider" />
-
+        {/* Linha inferior: controles de gestão */}
         <div className="det-header-gestao">
           <div className="det-gestao-field">
             <label>Urgência</label>
@@ -558,16 +561,17 @@ const DetalhesFamilia = () => {
             </select>
           </div>
           <div className="det-gestao-save">
-            <button className="btn-primary btn-success" onClick={handleSaveGestao} disabled={savingGestao}>
+            <button className="btn-primary" onClick={handleSaveGestao} disabled={savingGestao}>
               {savingGestao ? 'Salvando…' : 'Salvar'}
             </button>
             {gestaoMsg && (
-              <span style={{ fontSize: 13, color: gestaoMsg.includes('Erro') ? '#dc2626' : '#16a34a' }}>
+              <span className={`det-gestao-msg${gestaoMsg === 'Salvo!' ? ' det-gestao-msg--ok' : ' det-gestao-msg--err'}`}>
                 {gestaoMsg}
               </span>
             )}
           </div>
         </div>
+
       </div>
 
       {/* TÍTULO DA SEÇÃO */}
@@ -586,13 +590,19 @@ const DetalhesFamilia = () => {
               key={op.key}
               className={`det-opcao-card${isActive ? ' det-opcao-card--active' : ''}`}
               style={{
-                background:  op.bg,
+                background:  isActive ? op.bg : '#fff',
                 borderColor: isActive ? op.color : op.border,
                 borderWidth: isActive ? '2px' : '1.5px',
               }}
               onClick={() => setSelected(op.key)}
             >
-              <div className="det-opcao-icon-wrap" style={{ background: op.border, color: op.color }}>
+              <div
+                className="det-opcao-icon-wrap"
+                style={{
+                  background: isActive ? op.color : op.bg,
+                  color:      isActive ? '#fff'    : op.color,
+                }}
+              >
                 {op.icon}
               </div>
               <div>
