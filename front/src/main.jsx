@@ -37,7 +37,9 @@ createRoot(document.getElementById('root')).render(
         <Route path="/novo-cadastro/:id"            element={<NovosCadastro />} />
         <Route path="/novo-cadastro/:id/:fichaId"   element={<NovosCadastro />} />
         <Route path="/atendimentos"       element={<Atendimentos />} />
-        <Route path="/novo-atendimento"   element={<NovoAtendimento />} />
+        <Route path="/novo-atendimento"                                   element={<NovoAtendimento />} />
+        <Route path="/novo-atendimento/:familiaId"                      element={<NovoAtendimento />} />
+        <Route path="/novo-atendimento/:familiaId/:atendimentoId"       element={<NovoAtendimento />} />
         <Route path="/agenda"             element={<Agenda />} />
         <Route path="/painel-admin"          element={<AdminRoute element={<PainelAdmin />} />} />
         <Route path="/detalhes-familia/:id"   element={<DetalhesFamilia />} />

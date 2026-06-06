@@ -114,6 +114,24 @@ const DetalhesFamilia = () => {
       })
       .catch(() => {});
 
+    fetch(`${API_URL}/familias/${id}/audio-atendimento`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(list => {
+        const items = Array.isArray(list) ? list : (list ? [list] : []);
+        if (!items.length) return;
+        setListas(prev => ({
+          ...prev,
+          atendimentos: items.map(data => ({
+            id: data.codigo || data.id,
+            data: data.data ? new Date(data.data).toLocaleDateString('pt-BR') : '—',
+            tecnico: data.nomeOrientador || '—',
+            tipo: data.tipoAtendimento || '',
+            status: 'concluido',
+          })),
+        }));
+      })
+      .catch(() => {});
+
     fetch(`${API_URL}/familias/${id}/visitas`, { headers })
       .then(r => r.ok ? r.json() : null)
       .then(list => {
@@ -158,7 +176,8 @@ const DetalhesFamilia = () => {
       listTitle:    'Histórico de Atendimentos',
       itemLabel:    'Atendimento',
       novaLabel:    'Novo Atendimento',
-      novaPath:     `/novo-atendimento`,
+      novaPath:     `/novo-atendimento/${id}`,
+      itemPath:     (item) => `/novo-atendimento/${id}/${item.id}`,
       statusMap:    STATUS_ATENDIMENTO,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">

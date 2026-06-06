@@ -137,6 +137,7 @@ const NovosCadastro = () => {
   }, []);
 
   useEffect(() => {
+    console.log('[NovosCadastro] useEffect disparado — id:', id, '| fichaIdParam:', fichaIdParam);
     if (!id) return;
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
 
@@ -147,9 +148,11 @@ const NovosCadastro = () => {
     };
 
     // Busca dados básicos da família para breadcrumb / fallback
+    console.log('[NovosCadastro] buscando familia:', `${API_URL}/familias/${id}`);
     fetch(`${API_URL}/familias/${id}`, { headers })
       .then(r => r.ok ? r.json() : null)
       .then(data => {
+        console.log('[NovosCadastro] familia response:', data);
         if (!data) return;
         setFamilia({
           id: data.id,
@@ -161,13 +164,41 @@ const NovosCadastro = () => {
       })
       .catch(() => {});
 
-    // Busca ficha cadastral existente e pré-preenche o formulário
-    const fichaUrl = fichaIdParam
-      ? `${API_URL}/familias/${id}/cadastro/${fichaIdParam}`
-      : `${API_URL}/familias/${id}/cadastro`;
-    fetch(fichaUrl, { headers })
+    // Busca ficha cadastral existente e pré-preenche o formulário (só no modo edição)
+    console.log('[NovosCadastro] fichaIdParam é', fichaIdParam, '→', fichaIdParam ? 'modo EDIÇÃO (PUT)' : 'modo NOVO (POST) — resetando form');
+    if (!fichaIdParam) {
+      setCadastroId(null);
+      setForm({
+        nomeSASF: 'SASF Chico Mendes', cas: '', cras: '',
+        nMatricula: '', dataMatricula: '', dataDesligamento: '',
+        nomeRepresentante: '', nomeSocial: '',
+        genero: '', nascimento: '', nNIS: '', naturalidade: '',
+        corRaca: '', deficiencia: '',
+        cpf: '', rg: '', emissao: '', orgaoEmissor: '', uf: '',
+        ctps: '', serie: '', certidaoNum: '',
+        mae: '', pai: '',
+        estadoCivil: '', grauInstrucao: '',
+        profissao: '', ocupacao: '', situacaoEmprego: '', renda: '',
+        endereco: '', numEnd: '', complemento: '', cep: '',
+        bairro: '', distrito: '',
+        telResid: '', telCel: '', telefone: '',
+        pontoReferencia: '',
+        condicoesMoradia: '', numCommodores: '', valorAluguel: '',
+        tipoConstrucao: '', situacaoHabitacional: '',
+        recebeTransferencia: '', transferenciasQuais: [],
+        recebeBPC: '', bpcQuais: [],
+        demanda: '', orientacoes: '', encaminhamentos: '',
+        tecnicoId: '', dataTecnico: '',
+      });
+      setMembros(Array.from({ length: 12 }, emptyMembro));
+      setComplementares(Array.from({ length: 12 }, emptyComplementar));
+      return;
+    }
+    console.log('[NovosCadastro] buscando ficha:', `${API_URL}/familias/${id}/cadastro/${fichaIdParam}`);
+    fetch(`${API_URL}/familias/${id}/cadastro/${fichaIdParam}`, { headers })
       .then(r => r.ok ? r.json() : null)
       .then(res => {
+        console.log('[NovosCadastro] ficha response:', res);
         const data = Array.isArray(res) ? res[0] : res;
         if (!data) return;
         setCadastroId(data.id ?? null);
@@ -920,7 +951,7 @@ const NovosCadastro = () => {
         {saveError && <p style={{ color: '#dc2626', margin: '8px 0' }}>{saveError}</p>}
         <div className="form-actions">
           <Link to={backPath} className="btn-secondary">← Voltar</Link>
-          <button className="btn-secondary" onClick={() => {}}>Salvar rascunho</button>
+
           <button className="btn-primary btn-success" onClick={handleSave} disabled={saving}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
               strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
