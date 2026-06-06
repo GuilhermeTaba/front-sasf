@@ -57,7 +57,6 @@ const Atendimentos = () => {
           <h1 className="page-title">Atendimentos</h1>
           <p className="page-sub">Unidade Chico Mendes · junho de 2026</p>
         </div>
-        <button className="btn-primary" onClick={() => navigate('/novo-atendimento')}>+ Novo atendimento</button>
       </div>
 
       {/* ── STAT CARDS ── */}

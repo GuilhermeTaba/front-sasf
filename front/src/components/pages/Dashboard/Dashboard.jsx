@@ -91,7 +91,6 @@ const Dashboard = () => {
         <h1 className="dash-title">Dashboard</h1>
         <p className="dash-sub">Visão geral da unidade Chico Mendes — junho de 2026</p>
       </div>
-      <button className="btn-primary" onClick={() => navigate('/novo-atendimento')}>+ Novo atendimento</button>
     </div>
 
     {/* ── STAT CARDS ── */}

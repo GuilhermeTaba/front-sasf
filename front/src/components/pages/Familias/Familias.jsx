@@ -20,11 +20,13 @@ const mapUrgencia = nivel => {
 };
 
 const mapFamilia = (f, i) => ({
-  id: f.id,
-  responsavel: f.nomeRepresentante || '—',
-  codigo: f.codigoFamilia || '—',
-  status: mapUrgencia(f.nivelUrgencia),
-  _colorIdx: i,
+  id:          f.id,
+  responsavel: f.nomeRepresentante || f.nomeRepresentanteFamilia || '—',
+  codigo:      f.codigoFamilia || '—',
+  status:      mapUrgencia(f.nivelUrgencia),
+  tecnico:     f.tecnicoNome || f.tecnico?.nome || '—',
+  orientador:  f.orientadorNome || f.orientador?.nome || '—',
+  _colorIdx:   i,
 });
 
 const Familias = () => {
@@ -145,6 +147,8 @@ const Familias = () => {
                   <th>Responsável</th>
                   <th>Código</th>
                   <th>Status</th>
+                  <th>Técnico</th>
+                  <th>Orientador</th>
                   <th></th>
                 </tr>
               </thead>
@@ -173,6 +177,8 @@ const Familias = () => {
                           {st.label}
                         </span>
                       </td>
+                      <td className="muted">{f.tecnico}</td>
+                      <td className="muted">{f.orientador}</td>
                       <td>
                         <button
                           className="action-edit"
@@ -186,7 +192,7 @@ const Familias = () => {
                 })}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="empty-row">Nenhuma família encontrada.</td>
+                    <td colSpan={6} className="empty-row">Nenhuma família encontrada.</td>
                   </tr>
                 )}
               </tbody>
