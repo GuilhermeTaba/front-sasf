@@ -1,7 +1,9 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router';
 import Layout from '../../Layout';
 import './NovosCadastro.css';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 const FAMILIAS = [
   { id: 1, responsavel: 'Carlos Oliveira',  tecnico: 'Ana Silva',     regiao: 'Jd. Chico Mendes', membros: 5, tel: '(92) 99878-1234' },
@@ -24,12 +26,12 @@ const FATORES_RISCO = [
 
 const emptyMembro = () => ({
   nome: '', nascimento: '', parentesco: '', profissao: '',
-  ocupacao: '', renda: '', fatoresRisco: '',
+  ocupacao: '', renda: '', fatoresRiscoSocial: '',
 });
 
 const emptyComplementar = () => ({
-  nome: '', estuda: '', grauInstrucao: '', cca: false,
-  cj: false, cedesp: false, nci: false, outros: '',
+  estuda: '', grauInstrucao: '', cca: false,
+  cj: false, cedesp: false, nci: false, outroServico: '',
 });
 
 /* ── helpers de UI ── */
@@ -89,25 +91,20 @@ const CheckGroup = ({ name, checked, onChange, options }) => (
 
 /* ── componente principal ── */
 const NovosCadastro = () => {
-  const { id }    = useParams();
+  const { id, fichaId: fichaIdParam } = useParams();
   const navigate  = useNavigate();
-  const fileInputRef = useRef(null);
-
-  const familia = FAMILIAS.find(f => f.id === Number(id)) || null;
-
-  const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [dragOver, setDragOver] = useState(false);
+  const [familia, setFamilia] = useState(null);
 
   const [form, setForm] = useState({
     /* identificação */
     nomeSASF: 'SASF Chico Mendes', cas: '', cras: '',
     nMatricula: '', dataMatricula: '', dataDesligamento: '',
     /* representante */
-    nomeRepresentante: familia?.responsavel || '',
+    nomeRepresentante: '', nomeSocial: '',
     genero: '', nascimento: '', nNIS: '', naturalidade: '',
     corRaca: '', deficiencia: '',
     cpf: '', rg: '', emissao: '', orgaoEmissor: '', uf: '',
-    ctps: '', serie: '',
+    ctps: '', serie: '', certidaoNum: '',
     mae: '', pai: '',
     /* estado civil e instrução */
     estadoCivil: '', grauInstrucao: '',
@@ -115,8 +112,8 @@ const NovosCadastro = () => {
     profissao: '', ocupacao: '', situacaoEmprego: '', renda: '',
     /* endereço */
     endereco: '', numEnd: '', complemento: '', cep: '',
-    bairro: familia?.regiao || '', distrito: '',
-    telResid: '', telCel: familia?.tel || '', telefone: '',
+    bairro: '', distrito: '',
+    telResid: '', telCel: '', telefone: '',
     pontoReferencia: '',
     /* moradia */
     condicoesMoradia: '', numCommodores: '', valorAluguel: '',
@@ -125,11 +122,201 @@ const NovosCadastro = () => {
     recebeTransferencia: '', transferenciasQuais: [],
     recebeBPC: '', bpcQuais: [],
     /* demanda / técnico */
-    demanda: '', tecnico: familia?.tecnico || '', dataTecnico: '',
+    demanda: '', orientacoes: '', encaminhamentos: '',
+    tecnicoId: '', dataTecnico: '',
   });
+
+  const [tecnicos, setTecnicos] = useState([]);
+
+  useEffect(() => {
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+    fetch(`${API_URL}/tecnicos`, { headers })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setTecnicos(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    console.log('[NovosCadastro] useEffect disparado — id:', id, '| fichaIdParam:', fichaIdParam);
+    if (!id) return;
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+
+    const toDateBR = iso => {
+      if (!iso) return '';
+      const p = iso.split('-');
+      return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
+    };
+
+    // Busca dados básicos da família para breadcrumb / fallback
+    console.log('[NovosCadastro] buscando familia:', `${API_URL}/familias/${id}`);
+    fetch(`${API_URL}/familias/${id}`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        console.log('[NovosCadastro] familia response:', data);
+        if (!data) return;
+        setFamilia({
+          id: data.id,
+          responsavel: data.nomeRepresentante || data.nomeRepresentanteFamilia || '',
+          tecnico: data.tecnicoNome || data.tecnico?.nome || data.tecnico || '',
+          regiao: data.bairro || data.regiao || '',
+          tel: data.telefoneCelular || data.telefoneResidencial || '',
+        });
+      })
+      .catch(() => {});
+
+    // Busca ficha cadastral existente e pré-preenche o formulário (só no modo edição)
+    console.log('[NovosCadastro] fichaIdParam é', fichaIdParam, '→', fichaIdParam ? 'modo EDIÇÃO (PUT)' : 'modo NOVO (POST) — resetando form');
+    if (!fichaIdParam) {
+      setCadastroId(null);
+      setForm({
+        nomeSASF: 'SASF Chico Mendes', cas: '', cras: '',
+        nMatricula: '', dataMatricula: '', dataDesligamento: '',
+        nomeRepresentante: '', nomeSocial: '',
+        genero: '', nascimento: '', nNIS: '', naturalidade: '',
+        corRaca: '', deficiencia: '',
+        cpf: '', rg: '', emissao: '', orgaoEmissor: '', uf: '',
+        ctps: '', serie: '', certidaoNum: '',
+        mae: '', pai: '',
+        estadoCivil: '', grauInstrucao: '',
+        profissao: '', ocupacao: '', situacaoEmprego: '', renda: '',
+        endereco: '', numEnd: '', complemento: '', cep: '',
+        bairro: '', distrito: '',
+        telResid: '', telCel: '', telefone: '',
+        pontoReferencia: '',
+        condicoesMoradia: '', numCommodores: '', valorAluguel: '',
+        tipoConstrucao: '', situacaoHabitacional: '',
+        recebeTransferencia: '', transferenciasQuais: [],
+        recebeBPC: '', bpcQuais: [],
+        demanda: '', orientacoes: '', encaminhamentos: '',
+        tecnicoId: '', dataTecnico: '',
+      });
+      setMembros(Array.from({ length: 12 }, emptyMembro));
+      setComplementares(Array.from({ length: 12 }, emptyComplementar));
+      return;
+    }
+    console.log('[NovosCadastro] buscando ficha:', `${API_URL}/familias/${id}/cadastro/${fichaIdParam}`);
+    fetch(`${API_URL}/familias/${id}/cadastro/${fichaIdParam}`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(res => {
+        console.log('[NovosCadastro] ficha response:', res);
+        const data = Array.isArray(res) ? res[0] : res;
+        if (!data) return;
+        setCadastroId(data.id ?? null);
+
+        let grauInstrucao = '';
+        if (data.analfabeto)                          grauInstrucao = 'analfabeto';
+        else if (data.ensinoFundamental === 'COMPLETO')   grauInstrucao = 'fund_completo';
+        else if (data.ensinoFundamental === 'INCOMPLETO') grauInstrucao = 'fund_incompleto';
+        else if (data.ensinoMedio === 'COMPLETO')         grauInstrucao = 'medio_completo';
+        else if (data.ensinoMedio === 'INCOMPLETO')       grauInstrucao = 'medio_incompleto';
+        else if (data.ensinoSuperior === 'COMPLETO')      grauInstrucao = 'superior_completo';
+        else if (data.ensinoSuperior === 'INCOMPLETO')    grauInstrucao = 'superior_incompleto';
+
+        setForm({
+          nomeSASF:           data.nomeServicoSasf || 'SASF Chico Mendes',
+          cas:                data.cas || '',
+          cras:               data.cras || '',
+          nMatricula:         data.numeroMatricula || '',
+          dataMatricula:      toDateBR(data.dataMatricula),
+          dataDesligamento:   toDateBR(data.dataDesligamento),
+          nomeRepresentante:  data.nomeRepresentanteFamilia || '',
+          genero:             data.sexo || '',
+          nascimento:         toDateBR(data.dataNascimento),
+          nNIS:               data.nis || '',
+          naturalidade:       data.naturalidadeMunicipioEstado || '',
+          corRaca:            data.corRaca || '',
+          deficiencia:        data.pessoaComDeficiencia === true ? 'sim' : data.pessoaComDeficiencia === false ? 'nao' : '',
+          cpf:                data.cpf || '',
+          rg:                 data.rg || '',
+          emissao:            toDateBR(data.dataEmissao),
+          orgaoEmissor:       data.orgaoEmissor || '',
+          uf:                 data.uf || '',
+          ctps:               data.ctpsN || '',
+          serie:              data.serie || '',
+          mae:                data.mae || '',
+          pai:                data.pai || '',
+          estadoCivil:        data.estadoCivil || '',
+          grauInstrucao,
+          profissao:          data.profissao || '',
+          ocupacao:           data.ocupacao || '',
+          situacaoEmprego:    data.situacaoEmprego || '',
+          renda:              data.renda != null ? String(data.renda) : '',
+          endereco:           data.endereco || '',
+          numEnd:             data.numero || '',
+          complemento:        data.complemento || '',
+          cep:                data.cep || '',
+          bairro:             data.bairro || '',
+          distrito:           data.distrito || '',
+          telResid:           data.telefoneResidencial || '',
+          telCel:             data.telefoneCelular || '',
+          telefone:           data.telefoneRecado || '',
+          pontoReferencia:    data.pontoReferencia || '',
+          condicoesMoradia:   data.condicaoMoradia || '',
+          numCommodores:      data.numeroComodos != null ? String(data.numeroComodos) : '',
+          valorAluguel:       data.valorAluguel != null ? String(data.valorAluguel) : '',
+          tipoConstrucao:     data.tipoConstrucao || '',
+          situacaoHabitacional: data.situacaoHabitacional || '',
+          recebeTransferencia:  data.recebeProgramaTransferenciaRenda === true ? 'sim' : data.recebeProgramaTransferenciaRenda === false ? 'nao' : '',
+          transferenciasQuais:  data.programaRenda ? [data.programaRenda] : [],
+          recebeBPC:            data.recebeBeneficioPrestacaoContinuada === true ? 'sim' : data.recebeBeneficioPrestacaoContinuada === false ? 'nao' : '',
+          bpcQuais:             data.tipoBeneficioPrestacaoContinuada ? [data.tipoBeneficioPrestacaoContinuada] : [],
+          demanda:        data.demandaApresentada || '',
+          orientacoes:    data.orientacoes || '',
+          encaminhamentos: data.encaminhamentos || '',
+          tecnicoId:      data.tecnicoId ? String(data.tecnicoId) : '',
+          dataTecnico:    toDateBR(data.data),
+        });
+
+        if (data.composicaoFamiliar?.length) {
+          setMembros(prev => {
+            const next = [...prev];
+            data.composicaoFamiliar.forEach((m, i) => {
+              if (i < next.length) next[i] = {
+                nome:       m.nome || '',
+                nascimento: toDateBR(m.dataNascimento),
+                parentesco: m.parentesco || '',
+                profissao:  m.profissao || '',
+                ocupacao:   m.ocupacao || '',
+                renda:      m.renda != null ? String(m.renda) : '',
+                fatoresRiscoSocial: m.fatoresRiscoSocial || '',
+              };
+            });
+            return next;
+          });
+        }
+
+        if (data.informacoesComplementares?.length) {
+          setComplementares(prev => {
+            const next = [...prev];
+            data.informacoesComplementares.forEach((c, i) => {
+              if (i < next.length) next[i] = {
+                estuda:        c.estuda === true ? 'sim' : c.estuda === false ? 'nao' : '',
+                grauInstrucao: c.grauInstrucao || '',
+                cca:           c.cca || false,
+                cj:            c.cj || false,
+                cedesp:        c.cedesp || false,
+                nci:           c.nci || false,
+                outroServico:  c.outroServico || '',
+              };
+            });
+            return next;
+          });
+        }
+      })
+      .catch(() => {});
+  }, [id, fichaIdParam]);
 
   const [membros, setMembros] = useState(Array.from({ length: 12 }, emptyMembro));
   const [complementares, setComplementares] = useState(Array.from({ length: 12 }, emptyComplementar));
+
+  const maskDate = v => {
+    const d = v.replace(/\D/g, '').slice(0, 8);
+    if (d.length <= 2) return d;
+    if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
+    return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`;
+  };
+
+  const DATE_FIELDS = new Set(['dataMatricula', 'dataDesligamento', 'nascimento', 'emissao', 'dataTecnico']);
 
   const handle = (e) => {
     const { name, value, type, checked } = e.target;
@@ -139,7 +326,7 @@ const NovosCadastro = () => {
         return { ...f, [name]: checked ? [...arr, value] : arr.filter(v => v !== value) };
       });
     } else {
-      setForm(f => ({ ...f, [name]: value }));
+      setForm(f => ({ ...f, [name]: DATE_FIELDS.has(name) ? maskDate(value) : value }));
     }
   };
 
@@ -149,50 +336,165 @@ const NovosCadastro = () => {
   const handleComplementar = (idx, field, value) =>
     setComplementares(c => c.map((cp, i) => i === idx ? { ...cp, [field]: value } : cp));
 
-  /* upload */
-  const addFiles = (files) => {
-    const next = Array.from(files).map(f => ({
-      id: Date.now() + Math.random(),
-      originalName: f.name,
-      label: f.name.replace(/\.[^/.]+$/, ''),
-      size: f.size, type: f.type,
-      url: URL.createObjectURL(f),
+  const [cadastroId, setCadastroId] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+
+  const parseDateBRfc = (str) => {
+    if (!str) return null;
+    const p = str.split('/');
+    if (p.length === 3 && p[2].length === 4) return `${p[2]}-${p[1]}-${p[0]}`;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+    return null;
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveError('');
+    const tecnicoId = Number(form.tecnicoId) || null;
+    const familiaId = familia?.id || id;
+    const composicaoFamiliar = membros.filter(m => m.nome).map(m => ({
+      nome: m.nome,
+      dataNascimento: parseDateBRfc(m.nascimento),
+      parentesco: m.parentesco,
+      profissao: m.profissao,
+      ocupacao: m.ocupacao,
+      renda: m.renda ? parseFloat(m.renda) : null,
+      fatoresRiscoSocial: m.fatoresRiscoSocial,
     }));
-    setUploadedFiles(p => [...p, ...next]);
-  };
+    const informacoesComplementares = complementares
+      .map((c, i) => ({ ...c, nome: membros[i]?.nome || '' }))
+      .filter(c => c.nome)
+      .map(c => ({
+        nome: c.nome,
+        estuda: c.estuda === 'sim',
+        grauInstrucao: c.grauInstrucao,
+        cca: c.cca,
+        cj: c.cj,
+        cedesp: c.cedesp,
+        nci: c.nci,
+        outroServico: c.outroServico,
+      }));
+    try {
+      const base = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+      let endpoint, method;
+      if (familiaId && cadastroId) {
+        endpoint = `${base}/familias/${familiaId}/cadastro/${cadastroId}`;
+        method = 'PUT';
+      } else if (familiaId) {
+        endpoint = `${base}/familias/${familiaId}/cadastro`;
+        method = 'POST';
+      } else {
+        endpoint = `${base}/familias`;
+        method = 'POST';
+      }
+      const payload = {
+        // DOCUMENTACAO
+        nomeServicoSasf:    form.nomeSASF,
+        cas:                form.cas,
+        cras:               form.cras,
+        numeroMatricula:    form.nMatricula,
+        dataMatricula:      parseDateBRfc(form.dataMatricula),
+        dataDesligamento:   parseDateBRfc(form.dataDesligamento),
 
-  const renameFile = (id, label) =>
-    setUploadedFiles(p => p.map(f => f.id === id ? { ...f, label } : f));
+        // IDENTIFICACAO
+        nomeRepresentanteFamilia: form.nomeRepresentante,
+        nomeSocialRepresentante:  form.nomeSocial || null,
+        sexo:                     form.genero || null,
+        nis:                      form.nNIS,
+        rg:                       form.rg,
+        cpf:                      form.cpf,
+        dataNascimento:           parseDateBRfc(form.nascimento),
 
-  const fmtSize = (b) => b < 1048576 ? `${(b / 1024).toFixed(1)} KB` : `${(b / 1048576).toFixed(1)} MB`;
+        // DOCUMENTACAO (pessoal)
+        naturalidadeMunicipioEstado: form.naturalidade,
+        corRaca:           form.corRaca || null,
+        pessoaComDeficiencia: form.deficiencia === 'sim' ? true : form.deficiencia === 'nao' ? false : null,
+        certidaoNumero:    form.certidaoNum || null,
+        dataEmissao:       parseDateBRfc(form.emissao),
+        orgaoEmissor:      form.orgaoEmissor,
+        uf:                form.uf,
+        ctpsN:             form.ctps,
+        serie:             form.serie,
+        mae:               form.mae,
+        pai:               form.pai,
 
-  const fileIcon = (type) => {
-    if (type === 'application/pdf') return (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-      </svg>
-    );
-    if (type.startsWith('image/')) return (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2"/>
-        <circle cx="8.5" cy="8.5" r="1.5"/>
-        <polyline points="21 15 16 10 5 21"/>
-      </svg>
-    );
-    return (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-      </svg>
-    );
-  };
+        // DADOS PESSOAIS
+        estadoCivil:       form.estadoCivil || null,
+        analfabeto:        form.grauInstrucao === 'analfabeto',
+        ensinoFundamental: form.grauInstrucao === 'fund_completo'   ? 'COMPLETO'
+                         : form.grauInstrucao === 'fund_incompleto' ? 'INCOMPLETO' : null,
+        ensinoMedio:       form.grauInstrucao === 'medio_completo'   ? 'COMPLETO'
+                         : form.grauInstrucao === 'medio_incompleto' ? 'INCOMPLETO' : null,
+        ensinoSuperior:    form.grauInstrucao === 'superior_completo'   ? 'COMPLETO'
+                         : form.grauInstrucao === 'superior_incompleto' ? 'INCOMPLETO' : null,
+        profissao:         form.profissao,
+        ocupacao:          form.ocupacao,
 
-  const handleSave = () => {
-    if (familia) {
-      navigate(`/detalhes-familia/${familia.id}`);
-    } else {
-      navigate('/familias');
+        // ESCOLARIDADE / TRABALHO / RENDA
+        situacaoEmprego:   form.situacaoEmprego || null,
+        renda:             form.renda ? parseFloat(form.renda) : null,
+
+        // MORADIA + TELEFONE
+        endereco:              form.endereco,
+        numero:                form.numEnd,
+        complemento:           form.complemento,
+        bairro:                form.bairro,
+        cep:                   form.cep,
+        distrito:              form.distrito,
+        telefoneResidencial:   form.telResid,
+        telefoneCelular:       form.telCel,
+        telefoneRecado:        form.telefone,
+        pontoReferencia:       form.pontoReferencia,
+        condicaoMoradia:       form.condicoesMoradia || null,
+        numeroComodos:         form.numCommodores ? parseInt(form.numCommodores) : null,
+        valorAluguel:          form.valorAluguel ? parseFloat(form.valorAluguel) : null,
+        tipoConstrucao:        form.tipoConstrucao || null,
+        situacaoHabitacional:  form.situacaoHabitacional || null,
+
+        // BENEFICIOS
+        recebeProgramaTransferenciaRenda: form.recebeTransferencia === 'sim' ? true : form.recebeTransferencia === 'nao' ? false : null,
+        programaRenda:                    form.transferenciasQuais[0] || null,
+        recebeBeneficioPrestacaoContinuada: form.recebeBPC === 'sim' ? true : form.recebeBPC === 'nao' ? false : null,
+        tipoBeneficioPrestacaoContinuada:   form.bpcQuais[0] || null,
+
+        // COMPOSICAO FAMILIAR
+        composicaoFamiliar,
+
+        // INFORMACOES COMPLEMENTARES
+        informacoesComplementares,
+
+        // ATENDIMENTO
+        demandaApresentada: form.demanda,
+        orientacoes:        form.orientacoes || null,
+        encaminhamentos:    form.encaminhamentos || null,
+
+        tecnicoId: tecnicoId,
+        data:      parseDateBRfc(form.dataTecnico),
+      };
+      console.log('[NovosCadastro] POST/PUT endpoint:', endpoint, '\npayload:', payload);
+      const res = await fetch(endpoint, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        let msg = `Erro ${res.status}`;
+        try {
+          const body = await res.json();
+          console.error('[NovosCadastro] Erro backend:', JSON.stringify(body, null, 2));
+          msg = body.message || body.error || body.detalhe || body.errors?.[0]?.defaultMessage || JSON.stringify(body);
+        } catch { /* body não é JSON */ }
+        throw new Error(msg);
+      }
+      navigate(familia ? `/detalhes-familia/${familia.id}` : '/familias', { state: { tab: 'cadastral' } });
+    } catch (e) {
+      setSaveError(e.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -253,12 +555,14 @@ const NovosCadastro = () => {
           <Field label="Nome completo do representante" span={2}>
             <Input name="nomeRepresentante" value={form.nomeRepresentante} onChange={handle} placeholder="Nome completo" />
           </Field>
+          <Field label="Nome Social">
+            <Input name="nomeSocial" value={form.nomeSocial} onChange={handle} placeholder="Nome social (opcional)" />
+          </Field>
           <Field label="Gênero">
             <RadioGroup name="genero" value={form.genero} onChange={handle}
               options={[
-                { value: 'masculino', label: 'Masculino' },
-                { value: 'feminino',  label: 'Feminino'  },
-                { value: 'outro',     label: 'Outro'     },
+                { value: 'MASCULINO', label: 'Masculino' },
+                { value: 'FEMININO',  label: 'Feminino'  },
               ]} />
           </Field>
           <Field label="Data de Nascimento">
@@ -272,7 +576,14 @@ const NovosCadastro = () => {
           </Field>
           <Field label="Cor / Raça">
             <Select name="corRaca" value={form.corRaca} onChange={handle}
-              options={['Branca','Preta','Amarela','Parda','Indígena','Sem declaração'].map(v => ({ value: v, label: v }))} />
+              options={[
+                { value: 'BRANCA',         label: 'Branca'         },
+                { value: 'PRETA',          label: 'Preta'          },
+                { value: 'AMARELA',        label: 'Amarela'        },
+                { value: 'PARDA',          label: 'Parda'          },
+                { value: 'INDIGENA',       label: 'Indígena'       },
+                { value: 'SEM_DECLARACAO', label: 'Sem declaração' },
+              ]} />
           </Field>
           <Field label="Pessoa com Deficiência">
             <RadioGroup name="deficiencia" value={form.deficiencia} onChange={handle}
@@ -299,6 +610,9 @@ const NovosCadastro = () => {
           <Field label="Série">
             <Input name="serie" value={form.serie} onChange={handle} placeholder="Série" />
           </Field>
+          <Field label="Certidão Nº">
+            <Input name="certidaoNum" value={form.certidaoNum} onChange={handle} placeholder="Número da certidão" />
+          </Field>
           <Field label="Nome da Mãe" span={2}>
             <Input name="mae" value={form.mae} onChange={handle} placeholder="Nome completo da mãe" />
           </Field>
@@ -313,11 +627,11 @@ const NovosCadastro = () => {
           <Field label="Estado Civil">
             <RadioGroup name="estadoCivil" value={form.estadoCivil} onChange={handle}
               options={[
-                { value: 'solteiro',   label: 'Solteiro(a)'   },
-                { value: 'casado',     label: 'Casado(a)'     },
-                { value: 'separado',   label: 'Separado(a)'   },
-                { value: 'divorciado', label: 'Divorciado(a)' },
-                { value: 'viuvo',      label: 'Viúvo(a)'      },
+                { value: 'SOLTEIRO',   label: 'Solteiro(a)'   },
+                { value: 'CASADO',     label: 'Casado(a)'     },
+                { value: 'SEPARADO',   label: 'Separado(a)'   },
+                { value: 'DIVORCIADO', label: 'Divorciado(a)' },
+                { value: 'VIUVO',      label: 'Viúvo(a)'      },
               ]} />
           </Field>
           <Field label="Grau de Instrução">
@@ -326,7 +640,7 @@ const NovosCadastro = () => {
                 { value: 'analfabeto',          label: 'Analfabeto'          },
                 { value: 'fund_incompleto',      label: 'Fund. Incompleto'   },
                 { value: 'fund_completo',        label: 'Fund. Completo'     },
-                { value: 'medio_incompleto',     label: 'Médio Incompleto'   },
+                { value: 'medio_incompleto',     label: 'Médio Incompleto'    },
                 { value: 'medio_completo',       label: 'Médio Completo'     },
                 { value: 'superior_incompleto',  label: 'Sup. Incompleto'    },
                 { value: 'superior_completo',    label: 'Sup. Completo'      },
@@ -346,10 +660,10 @@ const NovosCadastro = () => {
           <Field label="Situação de Emprego">
             <RadioGroup name="situacaoEmprego" value={form.situacaoEmprego} onChange={handle}
               options={[
-                { value: 'empregado',    label: 'Empregado'    },
-                { value: 'desempregado', label: 'Desempregado' },
-                { value: 'aposentado',   label: 'Aposentado'   },
-                { value: 'pensionista',  label: 'Pensionista'  },
+                { value: 'EMPREGADO',    label: 'Empregado'    },
+                { value: 'DESEMPREGADO', label: 'Desempregado' },
+                { value: 'APOSENTADO',   label: 'Aposentado'   },
+                { value: 'PENSIONISTA',  label: 'Pensionista'  },
               ]} />
           </Field>
           <Field label="Renda Familiar (R$)">
@@ -398,9 +712,9 @@ const NovosCadastro = () => {
           <Field label="Condições de Moradia">
             <RadioGroup name="condicoesMoradia" value={form.condicoesMoradia} onChange={handle}
               options={[
-                { value: 'propria', label: 'Própria'  },
-                { value: 'alugada', label: 'Alugada'  },
-                { value: 'cedida',  label: 'Cedida'   },
+                { value: 'PROPRIA', label: 'Própria'  },
+                { value: 'ALUGADA', label: 'Alugada'  },
+                { value: 'CEDIDA',  label: 'Cedida'   },
               ]} />
           </Field>
           <Field label="Nº de Cômodos">
@@ -412,17 +726,17 @@ const NovosCadastro = () => {
           <Field label="Tipo de Construção">
             <RadioGroup name="tipoConstrucao" value={form.tipoConstrucao} onChange={handle}
               options={[
-                { value: 'alvenaria', label: 'Alvenaria' },
-                { value: 'madeira',   label: 'Madeira'   },
-                { value: 'mista',     label: 'Mista'     },
+                { value: 'ALVENARIA', label: 'Alvenaria' },
+                { value: 'MADEIRA',   label: 'Madeira'   },
+                { value: 'MISTA',     label: 'Mista'     },
               ]} />
           </Field>
           <Field label="Situação Habitacional">
             <RadioGroup name="situacaoHabitacional" value={form.situacaoHabitacional} onChange={handle}
               options={[
-                { value: 'cortico',     label: 'Cortiço'                },
-                { value: 'favela',      label: 'Favela'                 },
-                { value: 'loteamento',  label: 'Loteamento Irregular'   },
+                { value: 'CORTICO',              label: 'Cortiço'              },
+                { value: 'FAVELA',               label: 'Favela'               },
+                { value: 'LOTEAMENTO_IRREGULAR', label: 'Loteamento Irregular' },
               ]} />
           </Field>
         </div>
@@ -437,11 +751,11 @@ const NovosCadastro = () => {
               {form.recebeTransferencia === 'sim' && (
                 <CheckGroup name="transferenciasQuais" checked={form.transferenciasQuais} onChange={handle}
                   options={[
-                    { value: 'renda_minima',  label: 'Renda Mínima'  },
-                    { value: 'bolsa_familia', label: 'Bolsa Família'  },
-                    { value: 'renda_cidada',  label: 'Renda Cidadã'  },
-                    { value: 'acao_jovem',    label: 'Ação Jovem'    },
-                    { value: 'peti',          label: 'PETI'          },
+                    { value: 'RENDA_MINIMA',  label: 'Renda Mínima'  },
+                    { value: 'BOLSA_FAMILIA', label: 'Bolsa Família'  },
+                    { value: 'RENDA_CIDADA',  label: 'Renda Cidadã'  },
+                    { value: 'ACAO_JOVEM',    label: 'Ação Jovem'    },
+                    { value: 'PETI',          label: 'PETI'          },
                   ]} />
               )}
             </div>
@@ -453,8 +767,8 @@ const NovosCadastro = () => {
               {form.recebeBPC === 'sim' && (
                 <CheckGroup name="bpcQuais" checked={form.bpcQuais} onChange={handle}
                   options={[
-                    { value: 'idoso',       label: 'Idoso'                 },
-                    { value: 'deficiencia', label: 'Pessoa com deficiência' },
+                    { value: 'IDOSO',                  label: 'Idoso'                 },
+                    { value: 'PESSOA_COM_DEFICIENCIA', label: 'Pessoa com deficiência' },
                   ]} />
               )}
             </div>
@@ -489,7 +803,7 @@ const NovosCadastro = () => {
                   </td>
                   <td>
                     <input className="tbl-input tbl-input--sm" value={m.nascimento}
-                      onChange={e => handleMembro(i, 'nascimento', e.target.value)}
+                      onChange={e => handleMembro(i, 'nascimento', maskDate(e.target.value))}
                       placeholder="dd/mm/aaaa" />
                   </td>
                   <td>
@@ -513,8 +827,8 @@ const NovosCadastro = () => {
                       placeholder="0,00" />
                   </td>
                   <td>
-                    <select className="tbl-input tbl-input--sm" value={m.fatoresRisco}
-                      onChange={e => handleMembro(i, 'fatoresRisco', e.target.value)}>
+                    <select className="tbl-input tbl-input--sm" value={m.fatoresRiscoSocial}
+                      onChange={e => handleMembro(i, 'fatoresRiscoSocial', e.target.value)}>
                       <option value="">—</option>
                       {FATORES_RISCO.map(f => <option key={f} value={f}>{f}</option>)}
                     </select>
@@ -557,9 +871,7 @@ const NovosCadastro = () => {
                 <tr key={i} className={i % 2 === 0 ? 'tr-even' : 'tr-odd'}>
                   <td className="col-num td-num">{i + 1}.</td>
                   <td>
-                    <input className="tbl-input" value={c.nome}
-                      onChange={e => handleComplementar(i, 'nome', e.target.value)}
-                      placeholder="Nome" />
+                    <span className="tbl-nome-ref">{membros[i]?.nome || '—'}</span>
                   </td>
                   <td>
                     <select className="tbl-input tbl-input--xs" value={c.estuda}
@@ -590,8 +902,8 @@ const NovosCadastro = () => {
                     </td>
                   ))}
                   <td>
-                    <input className="tbl-input" value={c.outros}
-                      onChange={e => handleComplementar(i, 'outros', e.target.value)}
+                    <input className="tbl-input" value={c.outroServico}
+                      onChange={e => handleComplementar(i, 'outroServico', e.target.value)}
                       placeholder="Especificar..." />
                   </td>
                 </tr>
@@ -603,87 +915,49 @@ const NovosCadastro = () => {
         {/* ── DEMANDA E TÉCNICO ── */}
         <SectionTitle>Demanda Apresentada / Orientações / Encaminhamentos</SectionTitle>
         <div className="fields-grid fields-grid--1">
-          <Field label="Descreva a demanda, orientações e encaminhamentos">
+          <Field label="Demanda Apresentada">
             <textarea name="demanda" value={form.demanda} onChange={handle}
-              className="field-textarea" rows={7}
-              placeholder="Descreva aqui a demanda apresentada pela família, as orientações fornecidas e os encaminhamentos realizados..." />
+              className="field-textarea" rows={4}
+              placeholder="Descreva a demanda apresentada pela família..." />
+          </Field>
+          <Field label="Orientações">
+            <textarea name="orientacoes" value={form.orientacoes} onChange={handle}
+              className="field-textarea" rows={4}
+              placeholder="Descreva as orientações fornecidas..." />
+          </Field>
+          <Field label="Encaminhamentos">
+            <textarea name="encaminhamentos" value={form.encaminhamentos} onChange={handle}
+              className="field-textarea" rows={4}
+              placeholder="Descreva os encaminhamentos realizados..." />
           </Field>
         </div>
 
         <SectionTitle>Técnico Responsável</SectionTitle>
         <div className="fields-grid fields-grid--3">
           <Field label="Técnico de Referência" span={2}>
-            <Input name="tecnico" value={form.tecnico} onChange={handle} placeholder="Nome do técnico responsável" />
+            <select name="tecnicoId" value={form.tecnicoId} onChange={handle} className="field-input">
+              <option value="">Selecione um técnico...</option>
+              {tecnicos.map(t => (
+                <option key={t.id} value={t.id}>{t.nome}</option>
+              ))}
+            </select>
           </Field>
           <Field label="Data">
             <Input name="dataTecnico" value={form.dataTecnico} onChange={handle} placeholder="dd/mm/aaaa" />
           </Field>
         </div>
 
-        {/* ── DOCUMENTOS ── */}
-        <SectionTitle>Documentos da Família</SectionTitle>
-        <p className="step-desc">Anexe documentos em PDF, PNG, JPG ou outros formatos (máx. 10 MB por arquivo).</p>
-        <div
-          className={`upload-zone${dragOver ? ' upload-zone--over' : ''}`}
-          onClick={() => fileInputRef.current?.click()}
-          onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={e => { e.preventDefault(); setDragOver(false); addFiles(e.dataTransfer.files); }}
-        >
-          <input ref={fileInputRef} type="file" multiple
-            accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx"
-            style={{ display: 'none' }}
-            onChange={e => addFiles(e.target.files)} />
-          <div className="upload-zone-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="#1d4ed8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              <polyline points="17 8 12 3 7 8" stroke="#1d4ed8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              <line x1="12" y1="3" x2="12" y2="15" stroke="#1d4ed8" strokeWidth="1.8" strokeLinecap="round"/>
-            </svg>
-          </div>
-          <p className="upload-zone-title">Arraste arquivos aqui ou clique para selecionar</p>
-          <p className="upload-zone-hint">PDF, PNG, JPG, DOC, XLS — até 10 MB cada</p>
-          <button className="upload-zone-btn" type="button"
-            onClick={e => { e.stopPropagation(); fileInputRef.current?.click(); }}>
-            Selecionar arquivos
-          </button>
-        </div>
-
-        {uploadedFiles.length > 0 && (
-          <div className="files-list">
-            <p className="files-list-title">Arquivos anexados ({uploadedFiles.length})</p>
-            {uploadedFiles.map(f => (
-              <div key={f.id} className="file-row">
-                <div className="file-icon">{fileIcon(f.type)}</div>
-                <div className="file-info">
-                  <input className="file-label-input" value={f.label}
-                    onChange={e => renameFile(f.id, e.target.value)}
-                    placeholder="Nome do documento..." />
-                  <span className="file-original">{f.originalName} · {fmtSize(f.size)}</span>
-                </div>
-                <button className="file-remove"
-                  onClick={() => setUploadedFiles(p => p.filter(x => x.id !== f.id))}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    strokeWidth="2.2" strokeLinecap="round">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
-                  </svg>
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
         {/* ── AÇÕES ── */}
+        {saveError && <p style={{ color: '#dc2626', margin: '8px 0' }}>{saveError}</p>}
         <div className="form-actions">
           <Link to={backPath} className="btn-secondary">← Voltar</Link>
-          <button className="btn-secondary" onClick={() => {}}>Salvar rascunho</button>
-          <button className="btn-primary btn-success" onClick={handleSave}>
+
+          <button className="btn-primary btn-success" onClick={handleSave} disabled={saving}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
               strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            Confirmar cadastro
+            {saving ? 'Salvando…' : cadastroId ? 'Salvar alterações' : 'Confirmar cadastro'}
           </button>
         </div>
 

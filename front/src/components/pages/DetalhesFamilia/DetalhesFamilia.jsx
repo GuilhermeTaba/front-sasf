@@ -1,19 +1,16 @@
-import { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router';
+import { useState, useRef, useEffect } from 'react';
+import { useParams, useNavigate, useLocation, Link } from 'react-router';
 import Layout from '../../Layout';
 import './DetalhesFamilia.css';
 import '../lista-docs.css';
 
-const FAMILIAS = [
-  { id: 1, responsavel: 'Carlos Oliveira',  tecnico: 'Ana Silva',     regiao: 'Jd. Chico Mendes', membros: 5, tel: '(92) 99878-1234', status: 'urgente' },
-  { id: 2, responsavel: 'Marta Lima',        tecnico: 'Ana Silva',     regiao: 'Vila São José',     membros: 6, tel: '(92) 98012-7799', status: 'ok'      },
-  { id: 3, responsavel: 'João Ribeiro',      tecnico: 'Ana Silva',     regiao: 'Vila São José',     membros: 2, tel: '(92) 99387-0099', status: 'ok'      },
-  { id: 4, responsavel: 'Fernanda Souza',    tecnico: 'Carlos Mendes', regiao: 'Jd. Chico Mendes', membros: 4, tel: '(92) 99129-4456', status: 'urgente' },
-  { id: 5, responsavel: 'Paulo Costa',       tecnico: 'Carlos Mendes', regiao: 'Vila Esperança',    membros: 5, tel: '(92) 99001-3844', status: 'atencao' },
-  { id: 6, responsavel: 'Lúcia Pereira',     tecnico: 'Beatriz Rocha', regiao: 'Centro',            membros: 3, tel: '(92) 99445-2210', status: 'ok'      },
-  { id: 7, responsavel: 'Ricardo Mendes',    tecnico: 'Beatriz Rocha', regiao: 'Centro',            membros: 4, tel: '(92) 99332-7711', status: 'ok'      },
-  { id: 8, responsavel: 'Sandra Almeida',    tecnico: 'Elisa Tavares', regiao: 'Jd. Chico Mendes', membros: 7, tel: '(92) 98785-1100', status: 'urgente' },
-];
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+const mapUrgencia = nivel => {
+  if (nivel === 'URGENCIA') return 'urgente';
+  if (nivel === 'ATENCAO')  return 'atencao';
+  return 'ok';
+};
 
 const STATUS_MAP = {
   ok:      { label: 'Ok',      bg: '#dcfce7', color: '#166534' },
@@ -21,54 +18,12 @@ const STATUS_MAP = {
   urgente: { label: 'Urgente', bg: '#fee2e2', color: '#991b1b' },
 };
 
-const STATUS_FICHA = {
-  completo: { bg: '#dcfce7', color: '#166534', label: 'Completo' },
-  rascunho: { bg: '#fef3c7', color: '#92400e', label: 'Rascunho' },
-  assinado: { bg: '#dcfce7', color: '#166534', label: 'Assinado' },
-};
 
-const STATUS_ATENDIMENTO = {
-  concluido: { bg: '#dcfce7', color: '#166534', label: 'Concluído' },
-  andamento: { bg: '#dbeafe', color: '#1d4ed8', label: 'Em andamento' },
-  pendente:  { bg: '#fef3c7', color: '#92400e', label: 'Pendente' },
-};
+const fmtSize = b => b < 1048576 ? `${(b/1024).toFixed(1)} KB` : `${(b/1048576).toFixed(1)} MB`;
 
-const LISTAS = {
-  atendimentos: [
-    { id: 1, data: '12/05/2025', tecnico: 'Ana Silva',     tipo: 'Visita domiciliar', status: 'concluido' },
-    { id: 2, data: '03/04/2025', tecnico: 'Ana Silva',     tipo: 'Acompanhamento',    status: 'concluido' },
-    { id: 3, data: '15/02/2025', tecnico: 'Carlos Mendes', tipo: 'Entrevista social', status: 'concluido' },
-    { id: 4, data: '07/01/2025', tecnico: 'Ana Silva',     tipo: 'Encaminhamento',    status: 'andamento' },
-  ],
-  cadastral: [
-    { id: 1, data: '15/03/2024', tecnico: 'Ana Silva',     status: 'completo' },
-    { id: 2, data: '08/11/2023', tecnico: 'Ana Silva',     status: 'completo' },
-    { id: 3, data: '22/06/2023', tecnico: 'Carlos Mendes', status: 'rascunho' },
-  ],
-  atualizacao: [
-    { id: 1, data: '10/04/2025', tecnico: 'Ana Silva', status: 'completo' },
-    { id: 2, data: '05/01/2025', tecnico: 'Ana Silva', status: 'completo' },
-    { id: 3, data: '18/08/2024', tecnico: 'Ana Silva', status: 'rascunho' },
-  ],
-  termo: [
-    { id: 1, data: '20/02/2024', tecnico: 'Beatriz Rocha', status: 'assinado' },
-    { id: 2, data: '11/09/2023', tecnico: 'Ana Silva',     status: 'assinado' },
-  ],
-  visita: [
-    { id: 1, data: '10/05/2025', tecnico: 'Ana Silva', status: 'completo' },
-    { id: 2, data: '15/02/2025', tecnico: 'Ana Silva', status: 'completo' },
-  ],
-  planoDesenvolvimento: [
-    { id: 1, data: '20/01/2025', tecnico: 'Ana Silva', status: 'completo' },
-  ],
-  planoPDU: [
-    { id: 1, data: '12/03/2025', tecnico: 'Carlos Mendes', status: 'completo' },
-  ],
-  folhaProsseguimento: [
-    { id: 1, data: '01/04/2025', tecnico: 'Ana Silva', status: 'completo' },
-    { id: 2, data: '15/03/2025', tecnico: 'Ana Silva', status: 'completo' },
-    { id: 3, data: '01/03/2025', tecnico: 'Ana Silva', status: 'completo' },
-  ],
+const LISTAS_EMPTY = {
+  atendimentos: [], cadastral: [], atualizacao: [], termo: [],
+  visita: [], planoDesenvolvimento: [], planoPDU: [], folhaProsseguimento: [], documentos: [],
 };
 
 const COLORS = ['#1d4ed8','#ef4444','#22c55e','#f59e0b','#8b5cf6','#ec4899','#0ea5e9','#f97316'];
@@ -94,10 +49,141 @@ const UserIcon = () => (
 const DetalhesFamilia = () => {
   const { id }       = useParams();
   const navigate     = useNavigate();
-  const [selected, setSelected] = useState('cadastral');
+  const location     = useLocation();
+  const [selected, setSelected] = useState(location.state?.tab || 'cadastral');
 
-  const familia  = FAMILIAS.find(f => f.id === Number(id)) || FAMILIAS[0];
-  const avatarBg = COLORS[familia.id % COLORS.length];
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [dragOver, setDragOver]           = useState(false);
+  const fileInputRef = useRef(null);
+
+  const [familia, setFamilia]   = useState(null);
+  const [loading, setLoading]   = useState(true);
+  const [listas, setListas]     = useState(LISTAS_EMPTY);
+
+  useEffect(() => {
+    if (!id) return;
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+
+    fetch(`${API_URL}/familias/${id}`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        setFamilia({
+          id:         data.id,
+          responsavel: data.nomeRepresentante || data.nomeRepresentanteFamilia || '—',
+          tecnico:    data.tecnicoNome || data.tecnico?.nome || data.tecnico || '—',
+          regiao:     data.codigoFamilia || data.bairro || data.regiao || '—',
+          membros:    data.totalMembros ?? data.composicaoFamiliar?.length ?? 0,
+          tel:        data.telefoneCelular || data.telefoneResidencial || '—',
+          status:     mapUrgencia(data.nivelUrgencia || data.status),
+        });
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+
+    const toDateBR = iso => {
+      if (!iso) return '';
+      const p = iso.split('-');
+      return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
+    };
+
+    fetch(`${API_URL}/familias/${id}/cadastro`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(list => {
+        const items = Array.isArray(list) ? list : (list ? [list] : []);
+        if (!items.length) return;
+        setListas(prev => ({
+          ...prev,
+          cadastral: items.map((data, i) => ({
+            id: data.id ?? i + 1,
+            data: toDateBR(data.dataMatricula) || toDateBR(data.data) || '—',
+            tecnico: data.tecnicoNome || '—',
+          })),
+        }));
+      })
+      .catch(() => {});
+
+    fetch(`${API_URL}/familias/${id}/audio-atendimento`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(list => {
+        const items = Array.isArray(list) ? list : (list ? [list] : []);
+        if (!items.length) return;
+        setListas(prev => ({
+          ...prev,
+          atendimentos: items.map(data => ({
+            id: data.codigo || data.id,
+            data: data.data ? new Date(data.data).toLocaleDateString('pt-BR') : '—',
+            tecnico: data.nomeOrientador || '—',
+            tipo: data.tipoAtendimento || '',
+          })),
+        }));
+      })
+      .catch(() => {});
+
+    fetch(`${API_URL}/familias/${id}/atualizacoes`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(list => {
+        const items = Array.isArray(list) ? list : (list ? [list] : []);
+        if (!items.length) return;
+        setListas(prev => ({
+          ...prev,
+          atualizacao: items.map(data => ({
+            id:      data.id,
+            data:    data.dt || '—',
+            tecnico: data.tecnicoNome || '—',
+          })),
+        }));
+      })
+      .catch(() => {});
+
+    fetch(`${API_URL}/familias/${id}/visitas`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(list => {
+        const items = Array.isArray(list) ? list : (list ? [list] : []);
+        if (!items.length) return;
+        setListas(prev => ({
+          ...prev,
+          visita: items.map((data, i) => ({
+            id: data.id ?? i + 1,
+            data: toDateBR(data.dataPreenchimento) || '—',
+            tecnico: data.tecnicoNome || '—',
+          })),
+        }));
+      })
+      .catch(() => {});
+
+    fetch(`${API_URL}/familias/${id}/termos-autorizacao`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(list => {
+        const items = Array.isArray(list) ? list : (list ? [list] : []);
+        if (!items.length) return;
+        setListas(prev => ({
+          ...prev,
+          termo: items.map(data => ({
+            id:      data.id,
+            data:    data.data ? toDateBR(data.data) : '—',
+            tecnico: data.nome || '—',
+          })),
+        }));
+      })
+      .catch(() => {});
+  }, [id]);
+
+  const addFiles = files => {
+    const next = Array.from(files).map(f => ({
+      id: Date.now() + Math.random(),
+      name: f.name,
+      size: f.size,
+      type: f.type,
+      url:  URL.createObjectURL(f),
+    }));
+    setUploadedFiles(p => [...p, ...next]);
+  };
+
+  const removeFile = id =>
+    setUploadedFiles(p => p.filter(f => f.id !== id));
+
+  const avatarBg = COLORS[(Number(id) ?? 0) % COLORS.length];
 
   const OPCOES = [
     {
@@ -109,8 +195,8 @@ const DetalhesFamilia = () => {
       listTitle:    'Histórico de Atendimentos',
       itemLabel:    'Atendimento',
       novaLabel:    'Novo Atendimento',
-      novaPath:     `/novo-atendimento`,
-      statusMap:    STATUS_ATENDIMENTO,
+      novaPath:     `/novo-atendimento/${id}`,
+      itemPath:     (item) => `/novo-atendimento/${id}/${item.id}`,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
@@ -128,8 +214,8 @@ const DetalhesFamilia = () => {
       listTitle:    'Fichas Cadastrais',
       itemLabel:    'Ficha Cadastral',
       novaLabel:    'Nova Ficha Cadastral',
-      novaPath:     `/novo-cadastro/${familia.id}`,
-      statusMap:    STATUS_FICHA,
+      novaPath:     `/novo-cadastro/${id}`,
+      itemPath:     (item) => `/novo-cadastro/${id}/${item.id}`,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
@@ -150,8 +236,8 @@ const DetalhesFamilia = () => {
       listTitle:    'Fichas de Atualização',
       itemLabel:    'Ficha de Atualização',
       novaLabel:    'Nova Ficha de Atualização',
-      novaPath:     `/ficha-atualizacao/${familia.id}`,
-      statusMap:    STATUS_FICHA,
+      novaPath:     `/ficha-atualizacao/${id}`,
+      itemPath:     (item) => `/ficha-atualizacao/${id}/${item.id}`,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="23 4 23 10 17 10"/>
@@ -169,8 +255,8 @@ const DetalhesFamilia = () => {
       listTitle:    'Termos de Autorização de Imagem',
       itemLabel:    'Termo de Imagem',
       novaLabel:    'Novo Termo',
-      novaPath:     `/termo-imagem/${familia.id}`,
-      statusMap:    STATUS_FICHA,
+      novaPath:     `/termo-imagem/${id}`,
+      itemPath:     (item) => `/termo-imagem/${id}/${item.id}`,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -188,8 +274,8 @@ const DetalhesFamilia = () => {
       listTitle:    'Fichas de Visita Domiciliar',
       itemLabel:    'Ficha de Visita',
       novaLabel:    'Nova Visita Domiciliar',
-      novaPath:     `/ficha-visita/${familia.id}`,
-      statusMap:    STATUS_FICHA,
+      novaPath:     `/ficha-visita/${id}`,
+      itemPath:     (item) => `/ficha-visita/${id}/${item.id}`,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H14v-5h-4v5H4a1 1 0 01-1-1V9.5z"/>
@@ -205,8 +291,7 @@ const DetalhesFamilia = () => {
       listTitle:    'Planos de Desenvolvimento Familiar',
       itemLabel:    'Plano de Desenvolvimento',
       novaLabel:    'Novo Plano de Desenvolvimento',
-      novaPath:     `/plano-desenvolvimento/${familia.id}`,
-      statusMap:    STATUS_FICHA,
+      novaPath:     `/plano-desenvolvimento/${id}`,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
@@ -226,8 +311,7 @@ const DetalhesFamilia = () => {
       listTitle:    'Planos de Desenvolvimento do Usuário (PDU)',
       itemLabel:    'PDU',
       novaLabel:    'Novo PDU',
-      novaPath:     `/plano-pdu/${familia.id}`,
-      statusMap:    STATUS_FICHA,
+      novaPath:     `/plano-pdu/${id}`,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
@@ -246,8 +330,7 @@ const DetalhesFamilia = () => {
       listTitle:    'Folhas de Prosseguimento',
       itemLabel:    'Folha de Prosseguimento',
       novaLabel:    'Nova Folha de Prosseguimento',
-      novaPath:     `/folha-prosseguimento/${familia.id}`,
-      statusMap:    STATUS_FICHA,
+      novaPath:     `/folha-prosseguimento/${id}`,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
@@ -257,10 +340,34 @@ const DetalhesFamilia = () => {
         </svg>
       ),
     },
+    {
+      key:    'documentos',
+      color:  '#0369a1',
+      bg:     '#f0f9ff',
+      border: '#bae6fd',
+      title:  'Documentos',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      ),
+    },
   ];
 
   const opcaoAtiva = OPCOES.find(o => o.key === selected);
-  const itens      = LISTAS[selected] || [];
+  const itens      = listas[selected] || [];
+
+  if (loading) {
+    return <Layout><div style={{ padding: 40, color: '#6b7280' }}>Carregando...</div></Layout>;
+  }
+
+  if (!familia) {
+    return <Layout><div style={{ padding: 40, color: '#dc2626' }}>Família não encontrada.</div></Layout>;
+  }
+
+  const statusInfo = STATUS_MAP[familia.status] || STATUS_MAP.ok;
 
   return (
     <Layout>
@@ -280,16 +387,17 @@ const DetalhesFamilia = () => {
           <div>
             <h1 className="det-nome">{familia.responsavel}</h1>
             <p className="det-sub">
-              {familia.regiao}&ensp;·&ensp;{familia.membros} membros&ensp;·&ensp;{familia.tel}
+              {familia.regiao}
+              {familia.membros ? ` · ${familia.membros} membros` : ''}
+              {familia.tel && familia.tel !== '—' ? ` · ${familia.tel}` : ''}
             </p>
-            <p className="det-sub">Técnico responsável: <strong>{familia.tecnico}</strong></p>
+            {familia.tecnico && familia.tecnico !== '—' && (
+              <p className="det-sub">Técnico responsável: <strong>{familia.tecnico}</strong></p>
+            )}
           </div>
         </div>
-        <span
-          className="status-chip"
-          style={{ background: STATUS_MAP[familia.status].bg, color: STATUS_MAP[familia.status].color }}
-        >
-          {STATUS_MAP[familia.status].label}
+        <span className="status-chip" style={{ background: statusInfo.bg, color: statusInfo.color }}>
+          {statusInfo.label}
         </span>
       </div>
 
@@ -303,7 +411,7 @@ const DetalhesFamilia = () => {
       <div className="det-opcoes-grid">
         {OPCOES.map(op => {
           const isActive = op.key === selected;
-          const count    = LISTAS[op.key].length;
+          const count    = op.key === 'documentos' ? uploadedFiles.length : (listas[op.key]?.length ?? 0);
           return (
             <button
               key={op.key}
@@ -320,21 +428,146 @@ const DetalhesFamilia = () => {
               </div>
               <div>
                 <div className="det-opcao-title" style={{ color: op.color }}>{op.title}</div>
-                <div className="det-opcao-count">{count} {count === 1 ? 'registro' : 'registros'}</div>
+                <div className="det-opcao-count">
+                  {op.key === 'documentos'
+                    ? `${count} arquivo${count !== 1 ? 's' : ''}`
+                    : `${count} ${count === 1 ? 'registro' : 'registros'}`}
+                </div>
               </div>
             </button>
           );
         })}
       </div>
 
-      {/* LISTA DO DOCUMENTO SELECIONADO */}
-      {opcaoAtiva && (
+      {/* ABA DOCUMENTOS */}
+      {selected === 'documentos' && (() => {
+        const op = OPCOES.find(o => o.key === 'documentos');
+        return (
+          <>
+            <div className="lista-doc-section-header">
+              <div>
+                <h2 className="lista-doc-title">Documentos Anexados</h2>
+                <p className="lista-doc-sub">
+                  {familia?.responsavel}&ensp;·&ensp;{uploadedFiles.length} arquivo{uploadedFiles.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <button
+                className="lista-doc-nova-btn"
+                style={{ background: op.color }}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5"  y1="12" x2="19" y2="12"/>
+                </svg>
+                Adicionar Documento
+              </button>
+            </div>
+
+            {/* DROP ZONE */}
+            <div
+              className={`det-upload-zone${dragOver ? ' det-upload-zone--over' : ''}`}
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={e => { e.preventDefault(); setDragOver(false); addFiles(e.dataTransfer.files); }}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx"
+                style={{ display: 'none' }}
+                onChange={e => addFiles(e.target.files)}
+              />
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ marginBottom: 10 }}>
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="#0369a1" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                <polyline points="17 8 12 3 7 8" stroke="#0369a1" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                <line x1="12" y1="3" x2="12" y2="15" stroke="#0369a1" strokeWidth="1.8" strokeLinecap="round"/>
+              </svg>
+              <p className="det-upload-title">Arraste arquivos aqui ou clique para selecionar</p>
+              <p className="det-upload-hint">PDF, PNG, JPG, DOC, XLS — até 10 MB cada</p>
+            </div>
+
+            {/* LISTA DE ARQUIVOS */}
+            {uploadedFiles.length > 0 && (
+              <div className="lista-doc-card" style={{ marginTop: 16 }}>
+                {uploadedFiles.map(f => {
+                  const isPdf = f.type === 'application/pdf';
+                  const isImg = f.type.startsWith('image/');
+                  const iconColor = isPdf ? '#ef4444' : isImg ? '#7c3aed' : '#6b7280';
+                  return (
+                    <div key={f.id} className="lista-doc-item" style={{ cursor: 'default' }}>
+                      <div className="lista-doc-item-icon" style={{ background: op.bg, color: iconColor }}>
+                        {isPdf ? (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                          </svg>
+                        ) : isImg ? (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                          </svg>
+                        ) : (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                          </svg>
+                        )}
+                      </div>
+                      <div className="lista-doc-item-info">
+                        <div className="lista-doc-item-titulo">{f.name}</div>
+                        <div className="lista-doc-item-meta">
+                          <span>{fmtSize(f.size)}</span>
+                        </div>
+                      </div>
+                      <a
+                        href={f.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="lista-doc-ver-btn"
+                        style={{ borderColor: op.border, color: op.color }}
+                        onClick={e => e.stopPropagation()}
+                      >
+                        <span className="lista-doc-ver-label">Abrir</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                      </a>
+                      <button
+                        className="det-upload-remove"
+                        onClick={() => removeFile(f.id)}
+                        title="Remover"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          strokeWidth="2.2" strokeLinecap="round">
+                          <line x1="18" y1="6" x2="6" y2="18"/>
+                          <line x1="6"  y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        );
+      })()}
+
+      {/* LISTA DOS OUTROS DOCUMENTOS */}
+      {selected !== 'documentos' && opcaoAtiva && (
         <>
           <div className="lista-doc-section-header">
             <div>
               <h2 className="lista-doc-title">{opcaoAtiva.listTitle}</h2>
               <p className="lista-doc-sub">
-                {familia.responsavel}&ensp;·&ensp;{itens.length} {itens.length === 1 ? 'registro' : 'registros'}
+                {familia?.responsavel}&ensp;·&ensp;{itens.length} {itens.length === 1 ? 'registro' : 'registros'}
               </p>
             </div>
             <button
@@ -355,52 +588,60 @@ const DetalhesFamilia = () => {
             {itens.length === 0 ? (
               <div className="lista-doc-empty">Nenhum registro encontrado.</div>
             ) : (
-              itens.map((item, i) => {
-                const st = opcaoAtiva.statusMap[item.status];
-                return (
-                  <div
-                    key={item.id}
-                    className="lista-doc-item"
-                    onClick={() => navigate(opcaoAtiva.novaPath)}
-                  >
-                    <div
-                      className="lista-doc-item-icon"
-                      style={{ background: opcaoAtiva.bg, color: opcaoAtiva.color }}
-                    >
-                      {opcaoAtiva.icon}
-                    </div>
-
-                    <div className="lista-doc-item-info">
-                      <div className="lista-doc-item-titulo">
-                        {item.tipo
-                          ? `${opcaoAtiva.itemLabel} #${String(i + 1).padStart(2, '0')} — ${item.tipo}`
-                          : `${opcaoAtiva.itemLabel} #${String(i + 1).padStart(2, '0')} — ${familia.responsavel}`
-                        }
-                      </div>
-                      <div className="lista-doc-item-meta">
-                        <span><CalIcon /> {item.data}</span>
-                        <span><UserIcon /> {item.tecnico}</span>
-                      </div>
-                    </div>
-
-                    <span className="lista-doc-status" style={{ background: st.bg, color: st.color }}>
-                      {st.label}
-                    </span>
-
-                    <button
-                      className="lista-doc-ver-btn"
-                      style={{ borderColor: opcaoAtiva.border, color: opcaoAtiva.color }}
-                      onClick={e => { e.stopPropagation(); navigate(opcaoAtiva.novaPath); }}
-                    >
-                      <span className="lista-doc-ver-label">Visualizar</span>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
-                      </svg>
-                    </button>
+              itens.map((item, i) => (
+                <div
+                  key={item.id}
+                  className="lista-doc-item"
+                  onClick={() => navigate(opcaoAtiva.itemPath ? opcaoAtiva.itemPath(item) : opcaoAtiva.novaPath)}
+                >
+                  <div className="lista-doc-num-badge" style={{ background: opcaoAtiva.bg, color: opcaoAtiva.color, borderColor: opcaoAtiva.border }}>
+                    #{String(i + 1).padStart(2, '0')}
                   </div>
-                );
-              })
+                  <div className="lista-doc-item-info">
+                    <div className="lista-doc-item-titulo">{opcaoAtiva.itemLabel}</div>
+                    {item.data && item.data !== '—' && (
+                      <div className="lista-doc-item-date"><CalIcon /> {item.data}</div>
+                    )}
+                  </div>
+
+                  {(selected === 'cadastral' || selected === 'termo' || selected === 'visita') && (() => {
+                    const pdfUrl = selected === 'cadastral'
+                      ? `${API_URL}/familias/${id}/cadastro/${item.id}/pdf`
+                      : selected === 'visita'
+                        ? `${API_URL}/familias/${id}/visitas/${item.id}/pdf`
+                        : `${API_URL}/familias/${id}/termos-autorizacao/${item.id}/pdf`;
+                    return (
+                      <a
+                        href={pdfUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="lista-doc-ver-btn"
+                        style={{ borderColor: opcaoAtiva.border, color: '#dc2626' }}
+                        onClick={e => e.stopPropagation()}
+                      >
+                        <span className="lista-doc-ver-label">PDF</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                          <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                      </a>
+                    );
+                  })()}
+
+                  <button
+                    className="lista-doc-ver-btn"
+                    style={{ borderColor: opcaoAtiva.border, color: opcaoAtiva.color }}
+                    onClick={e => { e.stopPropagation(); navigate(opcaoAtiva.itemPath ? opcaoAtiva.itemPath(item) : opcaoAtiva.novaPath); }}
+                  >
+                    <span className="lista-doc-ver-label">Visualizar</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                  </button>
+                </div>
+              ))
             )}
           </div>
         </>

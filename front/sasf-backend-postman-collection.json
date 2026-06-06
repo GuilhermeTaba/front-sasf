@@ -1,0 +1,2424 @@
+{
+  "info": {
+    "_postman_id": "c8b31270-7428-4a0c-a59c-b0894dfc2d06",
+    "name": "SASF Backend - Testes Todas as Rotas",
+    "description": "Collection gerada a partir das controllers do projeto. Ajuste as variáveis antes de executar. Não foi utilizado application.properties.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Familias",
+      "item": [
+        {
+          "name": "Criar família",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/familias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeServicoSasf\": \"SASF Teste\",\n  \"cas\": \"CAS Centro\",\n  \"cras\": \"CRAS Teste\",\n  \"numeroMatricula\": \"MAT-001\",\n  \"dataMatricula\": \"2026-06-02\",\n  \"dataDesligamento\": null,\n  \"nomeRepresentanteFamilia\": \"Maria da Silva\",\n  \"nomeSocialRepresentante\": \"Maria\",\n  \"sexo\": \"FEMININO\",\n  \"nis\": \"12345678901\",\n  \"rg\": \"12345678\",\n  \"cpf\": \"12345678901\",\n  \"dataNascimento\": \"1980-01-01\",\n  \"naturalidadeMunicipioEstado\": \"São Paulo/SP\",\n  \"corRaca\": \"PARDA\",\n  \"pessoaComDeficiencia\": false,\n  \"certidaoNumero\": \"CERT-001\",\n  \"dataEmissao\": \"2020-01-01\",\n  \"orgaoEmissor\": \"SSP\",\n  \"uf\": \"SP\",\n  \"ctpsN\": \"12345\",\n  \"serie\": \"001\",\n  \"mae\": \"Ana da Silva\",\n  \"pai\": \"José da Silva\",\n  \"estadoCivil\": \"SOLTEIRO\",\n  \"analfabeto\": false,\n  \"ensinoFundamental\": \"COMPLETO\",\n  \"ensinoMedio\": \"COMPLETO\",\n  \"ensinoSuperior\": \"INCOMPLETO\",\n  \"profissao\": \"Auxiliar\",\n  \"ocupacao\": \"Autônoma\",\n  \"situacaoEmprego\": \"EMPREGADO\",\n  \"renda\": 1500.0,\n  \"endereco\": \"Rua Teste\",\n  \"numero\": \"100\",\n  \"complemento\": \"Casa\",\n  \"bairro\": \"Centro\",\n  \"cep\": \"01001000\",\n  \"distrito\": \"Sé\",\n  \"telefoneResidencial\": \"1130000000\",\n  \"telefoneCelular\": \"11999999999\",\n  \"telefoneRecado\": \"11888888888\",\n  \"pontoReferencia\": \"Praça\",\n  \"condicaoMoradia\": \"ALUGADA\",\n  \"numeroComodos\": 3,\n  \"valorAluguel\": 900.0,\n  \"tipoConstrucao\": \"ALVENARIA\",\n  \"situacaoHabitacional\": \"FAVELA\",\n  \"recebeProgramaTransferenciaRenda\": true,\n  \"programaRenda\": \"BOLSA_FAMILIA\",\n  \"recebeBeneficioPrestacaoContinuada\": false,\n  \"tipoBeneficioPrestacaoContinuada\": \"IDOSO\",\n  \"composicaoFamiliar\": [\n    {\n      \"nome\": \"João da Silva\",\n      \"dataNascimento\": \"2010-05-10\",\n      \"parentesco\": \"Filho\",\n      \"profissao\": \"Estudante\",\n      \"ocupacao\": \"Estudante\",\n      \"renda\": 0,\n      \"fatoresRiscoSocial\": \"Nenhum\"\n    }\n  ],\n  \"informacoesComplementares\": [\n    {\n      \"nome\": \"João da Silva\",\n      \"estuda\": true,\n      \"grauInstrucao\": \"Fundamental\",\n      \"cca\": false,\n      \"cj\": false,\n      \"cedesp\": false,\n      \"nci\": false,\n      \"outroServico\": \"\"\n    }\n  ],\n  \"demandaApresentada\": \"Demanda teste\",\n  \"orientacoes\": \"Orientação teste\",\n  \"encaminhamentos\": \"Encaminhamento teste\",\n  \"tecnicoId\": 1,\n  \"data\": \"2026-06-02\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar famílias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar família por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar família por código",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/codigo/{{codigoFamilia}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "codigo",
+                "{{codigoFamilia}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar família",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeServicoSasf\": \"SASF Teste\",\n  \"cas\": \"CAS Centro\",\n  \"cras\": \"CRAS Teste\",\n  \"numeroMatricula\": \"MAT-001\",\n  \"dataMatricula\": \"2026-06-02\",\n  \"dataDesligamento\": null,\n  \"nomeRepresentanteFamilia\": \"Maria da Silva\",\n  \"nomeSocialRepresentante\": \"Maria\",\n  \"sexo\": \"FEMININO\",\n  \"nis\": \"12345678901\",\n  \"rg\": \"12345678\",\n  \"cpf\": \"12345678901\",\n  \"dataNascimento\": \"1980-01-01\",\n  \"naturalidadeMunicipioEstado\": \"São Paulo/SP\",\n  \"corRaca\": \"PARDA\",\n  \"pessoaComDeficiencia\": false,\n  \"certidaoNumero\": \"CERT-001\",\n  \"dataEmissao\": \"2020-01-01\",\n  \"orgaoEmissor\": \"SSP\",\n  \"uf\": \"SP\",\n  \"ctpsN\": \"12345\",\n  \"serie\": \"001\",\n  \"mae\": \"Ana da Silva\",\n  \"pai\": \"José da Silva\",\n  \"estadoCivil\": \"SOLTEIRO\",\n  \"analfabeto\": false,\n  \"ensinoFundamental\": \"COMPLETO\",\n  \"ensinoMedio\": \"COMPLETO\",\n  \"ensinoSuperior\": \"INCOMPLETO\",\n  \"profissao\": \"Auxiliar\",\n  \"ocupacao\": \"Autônoma\",\n  \"situacaoEmprego\": \"EMPREGADO\",\n  \"renda\": 1500.0,\n  \"endereco\": \"Rua Teste\",\n  \"numero\": \"100\",\n  \"complemento\": \"Casa\",\n  \"bairro\": \"Centro\",\n  \"cep\": \"01001000\",\n  \"distrito\": \"Sé\",\n  \"telefoneResidencial\": \"1130000000\",\n  \"telefoneCelular\": \"11999999999\",\n  \"telefoneRecado\": \"11888888888\",\n  \"pontoReferencia\": \"Praça\",\n  \"condicaoMoradia\": \"ALUGADA\",\n  \"numeroComodos\": 3,\n  \"valorAluguel\": 900.0,\n  \"tipoConstrucao\": \"ALVENARIA\",\n  \"situacaoHabitacional\": \"FAVELA\",\n  \"recebeProgramaTransferenciaRenda\": true,\n  \"programaRenda\": \"BOLSA_FAMILIA\",\n  \"recebeBeneficioPrestacaoContinuada\": false,\n  \"tipoBeneficioPrestacaoContinuada\": \"IDOSO\",\n  \"composicaoFamiliar\": [\n    {\n      \"nome\": \"João da Silva\",\n      \"dataNascimento\": \"2010-05-10\",\n      \"parentesco\": \"Filho\",\n      \"profissao\": \"Estudante\",\n      \"ocupacao\": \"Estudante\",\n      \"renda\": 0,\n      \"fatoresRiscoSocial\": \"Nenhum\"\n    }\n  ],\n  \"informacoesComplementares\": [\n    {\n      \"nome\": \"João da Silva\",\n      \"estuda\": true,\n      \"grauInstrucao\": \"Fundamental\",\n      \"cca\": false,\n      \"cj\": false,\n      \"cedesp\": false,\n      \"nci\": false,\n      \"outroServico\": \"\"\n    }\n  ],\n  \"demandaApresentada\": \"Demanda teste\",\n  \"orientacoes\": \"Orientação teste\",\n  \"encaminhamentos\": \"Encaminhamento teste\",\n  \"tecnicoId\": 1,\n  \"data\": \"2026-06-02\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vincular orientador",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/orientador/{{orientadorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "orientador",
+                "{{orientadorId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deletar família",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Usuarios",
+      "item": [
+        {
+          "name": "Listar usuários",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar usuário por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{usuarioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{usuarioId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Criar usuário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Usuário Teste\",\n  \"email\": \"usuario.teste@example.com\",\n  \"cargo\": \"TECNICO\",\n  \"senha\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Editar usuário",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{usuarioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{usuarioId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Usuário Teste Editado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Aprovar usuário",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "User-Id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{usuarioId}}/aprovar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{usuarioId}}",
+                "aprovar"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deletar usuário",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "User-Id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{usuarioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{usuarioId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Orientadores",
+      "item": [
+        {
+          "name": "Listar orientadores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orientadores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orientadores"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vincular técnico",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orientadores/{{orientadorId}}/tecnico/{{tecnicoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orientadores",
+                "{{orientadorId}}",
+                "tecnico",
+                "{{tecnicoId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vincular famílias",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orientadores/{{orientadorId}}/familias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orientadores",
+                "{{orientadorId}}",
+                "familias"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  1,\n  2\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Técnicos",
+      "item": [
+        {
+          "name": "Listar técnicos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tecnicos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tecnicos"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vincular orientadores",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tecnicos/{{tecnicoId}}/orientadores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tecnicos",
+                "{{tecnicoId}}",
+                "orientadores"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  1,\n  2\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Admins",
+      "item": [
+        {
+          "name": "Listar admins",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admins",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admins"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Áudio Atendimento",
+      "item": [
+        {
+          "name": "Criar áudio atendimento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/audio-atendimento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "audio-atendimento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipoAtendimento\": \"VisitaDomiciliar\",\n  \"familia\": {\n    \"id\": 1\n  },\n  \"local\": \"Sede\",\n  \"data\": \"2026-06-02T10:00:00\",\n  \"relatorio\": \"Relatório de teste\",\n  \"nomeOrientador\": \"Orientador Teste\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar áudios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/audio-atendimento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "audio-atendimento"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar por família",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/audio-atendimento/familia/{{codigoFamilia}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "audio-atendimento",
+                "familia",
+                "{{codigoFamilia}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Editar áudio",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/audio-atendimento/{{codigoAudio}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "audio-atendimento",
+                "{{codigoAudio}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"AUD-001\",\n  \"tipoAtendimento\": \"AtendimentoNaSede\",\n  \"local\": \"Sede\",\n  \"relatorio\": \"Relatório editado\",\n  \"nomeOrientador\": \"Orientador Teste\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deletar áudio",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/audio-atendimento/{{codigoAudio}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "audio-atendimento",
+                "{{codigoAudio}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ficha Atualização",
+      "item": [
+        {
+          "name": "Criar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/atualizacoes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "atualizacoes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroMatricula\": \"MAT-001\",\n  \"nomeRepresentanteFamilia\": \"Maria da Silva\",\n  \"nomeSocialRepresentante\": \"Maria\",\n  \"nis\": \"12345678901\",\n  \"cpf\": \"12345678901\",\n  \"dataNascimento\": \"1980-01-01\",\n  \"membrosAtualizados\": [\n    {\n      \"nome\": \"João\",\n      \"dataNascimento\": \"2010-05-10\",\n      \"escola\": \"Escola Teste\",\n      \"serie\": 5,\n      \"m\": true,\n      \"t\": false,\n      \"n\": false\n    }\n  ],\n  \"zeroACinco\": 0,\n  \"seisAQuatorze\": 1,\n  \"quinzeADezessete\": 0,\n  \"dezoitoAVinteENove\": 0,\n  \"trintaACinquentaENove\": 1,\n  \"sessentaMais\": 0,\n  \"pcd\": 0,\n  \"bpcIdoso\": 0,\n  \"bpcPcd\": 0,\n  \"bolsaFamilia\": 1,\n  \"condicionalidades\": \"OK\",\n  \"status\": \"ATIVO\",\n  \"aguardandoVagaEmei\": 0,\n  \"frequentaCei\": 0,\n  \"frequentaEmei\": 0,\n  \"foraEscola\": 0,\n  \"aguardandoVagaEscola\": 0,\n  \"ensinoFundamental\": 1,\n  \"ensinoMedio\": 0,\n  \"eja\": 0,\n  \"pcdEscola\": 0,\n  \"cursoSuperior\": 0,\n  \"cca\": 0,\n  \"cj\": 0,\n  \"cedesp\": 0,\n  \"nci\": 0,\n  \"naispd\": 0,\n  \"vacinaAtualizada\": 1,\n  \"mulheresGestantes\": 0,\n  \"gestantesPreNatal\": 0,\n  \"situacaoRua\": 0,\n  \"trabalhoInfantil\": 0,\n  \"dependencia\": 0,\n  \"adolescenteMse\": 0,\n  \"adolescenteInternacao\": 0,\n  \"adultoPrivado\": 0,\n  \"criancasSaica\": 0,\n  \"idosoAcolhimento\": 0,\n  \"observacoes\": \"Teste\",\n  \"pdf\": false,\n  \"pdu\": false,\n  \"dt\": \"DT teste\",\n  \"tecnicoId\": 1,\n  \"responsavel\": \"Responsável Teste\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/atualizacoes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "atualizacoes"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/atualizacoes/{{fichaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "atualizacoes",
+                "{{fichaId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/atualizacoes/{{fichaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "atualizacoes",
+                "{{fichaId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroMatricula\": \"MAT-001\",\n  \"nomeRepresentanteFamilia\": \"Maria da Silva\",\n  \"nomeSocialRepresentante\": \"Maria\",\n  \"nis\": \"12345678901\",\n  \"cpf\": \"12345678901\",\n  \"dataNascimento\": \"1980-01-01\",\n  \"membrosAtualizados\": [\n    {\n      \"nome\": \"João\",\n      \"dataNascimento\": \"2010-05-10\",\n      \"escola\": \"Escola Teste\",\n      \"serie\": 5,\n      \"m\": true,\n      \"t\": false,\n      \"n\": false\n    }\n  ],\n  \"zeroACinco\": 0,\n  \"seisAQuatorze\": 1,\n  \"quinzeADezessete\": 0,\n  \"dezoitoAVinteENove\": 0,\n  \"trintaACinquentaENove\": 1,\n  \"sessentaMais\": 0,\n  \"pcd\": 0,\n  \"bpcIdoso\": 0,\n  \"bpcPcd\": 0,\n  \"bolsaFamilia\": 1,\n  \"condicionalidades\": \"OK\",\n  \"status\": \"ATIVO\",\n  \"aguardandoVagaEmei\": 0,\n  \"frequentaCei\": 0,\n  \"frequentaEmei\": 0,\n  \"foraEscola\": 0,\n  \"aguardandoVagaEscola\": 0,\n  \"ensinoFundamental\": 1,\n  \"ensinoMedio\": 0,\n  \"eja\": 0,\n  \"pcdEscola\": 0,\n  \"cursoSuperior\": 0,\n  \"cca\": 0,\n  \"cj\": 0,\n  \"cedesp\": 0,\n  \"nci\": 0,\n  \"naispd\": 0,\n  \"vacinaAtualizada\": 1,\n  \"mulheresGestantes\": 0,\n  \"gestantesPreNatal\": 0,\n  \"situacaoRua\": 0,\n  \"trabalhoInfantil\": 0,\n  \"dependencia\": 0,\n  \"adolescenteMse\": 0,\n  \"adolescenteInternacao\": 0,\n  \"adultoPrivado\": 0,\n  \"criancasSaica\": 0,\n  \"idosoAcolhimento\": 0,\n  \"observacoes\": \"Teste\",\n  \"pdf\": false,\n  \"pdu\": false,\n  \"dt\": \"DT teste\",\n  \"tecnicoId\": 1,\n  \"responsavel\": \"Responsável Teste\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deletar",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/atualizacoes/{{fichaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "atualizacoes",
+                "{{fichaId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ficha Cadastral",
+      "item": [
+        {
+          "name": "Criar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/cadastro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "cadastro"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeServicoSasf\": \"SASF Teste\",\n  \"cas\": \"CAS Centro\",\n  \"cras\": \"CRAS Teste\",\n  \"numeroMatricula\": \"MAT-001\",\n  \"dataMatricula\": \"2026-06-02\",\n  \"dataDesligamento\": null,\n  \"nomeRepresentanteFamilia\": \"Maria da Silva\",\n  \"nomeSocialRepresentante\": \"Maria\",\n  \"sexo\": \"FEMININO\",\n  \"nis\": \"12345678901\",\n  \"rg\": \"12345678\",\n  \"cpf\": \"12345678901\",\n  \"dataNascimento\": \"1980-01-01\",\n  \"naturalidadeMunicipioEstado\": \"São Paulo/SP\",\n  \"corRaca\": \"PARDA\",\n  \"pessoaComDeficiencia\": false,\n  \"certidaoNumero\": \"CERT-001\",\n  \"dataEmissao\": \"2020-01-01\",\n  \"orgaoEmissor\": \"SSP\",\n  \"uf\": \"SP\",\n  \"ctpsN\": \"12345\",\n  \"serie\": \"001\",\n  \"mae\": \"Ana da Silva\",\n  \"pai\": \"José da Silva\",\n  \"estadoCivil\": \"SOLTEIRO\",\n  \"analfabeto\": false,\n  \"ensinoFundamental\": \"COMPLETO\",\n  \"ensinoMedio\": \"COMPLETO\",\n  \"ensinoSuperior\": \"INCOMPLETO\",\n  \"profissao\": \"Auxiliar\",\n  \"ocupacao\": \"Autônoma\",\n  \"situacaoEmprego\": \"EMPREGADO\",\n  \"renda\": 1500.0,\n  \"endereco\": \"Rua Teste\",\n  \"numero\": \"100\",\n  \"complemento\": \"Casa\",\n  \"bairro\": \"Centro\",\n  \"cep\": \"01001000\",\n  \"distrito\": \"Sé\",\n  \"telefoneResidencial\": \"1130000000\",\n  \"telefoneCelular\": \"11999999999\",\n  \"telefoneRecado\": \"11888888888\",\n  \"pontoReferencia\": \"Praça\",\n  \"condicaoMoradia\": \"ALUGADA\",\n  \"numeroComodos\": 3,\n  \"valorAluguel\": 900.0,\n  \"tipoConstrucao\": \"ALVENARIA\",\n  \"situacaoHabitacional\": \"FAVELA\",\n  \"recebeProgramaTransferenciaRenda\": true,\n  \"programaRenda\": \"BOLSA_FAMILIA\",\n  \"recebeBeneficioPrestacaoContinuada\": false,\n  \"tipoBeneficioPrestacaoContinuada\": \"IDOSO\",\n  \"composicaoFamiliar\": [\n    {\n      \"nome\": \"João da Silva\",\n      \"dataNascimento\": \"2010-05-10\",\n      \"parentesco\": \"Filho\",\n      \"profissao\": \"Estudante\",\n      \"ocupacao\": \"Estudante\",\n      \"renda\": 0,\n      \"fatoresRiscoSocial\": \"Nenhum\"\n    }\n  ],\n  \"informacoesComplementares\": [\n    {\n      \"nome\": \"João da Silva\",\n      \"estuda\": true,\n      \"grauInstrucao\": \"Fundamental\",\n      \"cca\": false,\n      \"cj\": false,\n      \"cedesp\": false,\n      \"nci\": false,\n      \"outroServico\": \"\"\n    }\n  ],\n  \"demandaApresentada\": \"Demanda teste\",\n  \"orientacoes\": \"Orientação teste\",\n  \"encaminhamentos\": \"Encaminhamento teste\",\n  \"tecnicoId\": 1,\n  \"data\": \"2026-06-02\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/cadastro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "cadastro"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/cadastro/{{fichaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "cadastro",
+                "{{fichaId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/cadastro/{{fichaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "cadastro",
+                "{{fichaId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeServicoSasf\": \"SASF Teste\",\n  \"cas\": \"CAS Centro\",\n  \"cras\": \"CRAS Teste\",\n  \"numeroMatricula\": \"MAT-001\",\n  \"dataMatricula\": \"2026-06-02\",\n  \"dataDesligamento\": null,\n  \"nomeRepresentanteFamilia\": \"Maria da Silva\",\n  \"nomeSocialRepresentante\": \"Maria\",\n  \"sexo\": \"FEMININO\",\n  \"nis\": \"12345678901\",\n  \"rg\": \"12345678\",\n  \"cpf\": \"12345678901\",\n  \"dataNascimento\": \"1980-01-01\",\n  \"naturalidadeMunicipioEstado\": \"São Paulo/SP\",\n  \"corRaca\": \"PARDA\",\n  \"pessoaComDeficiencia\": false,\n  \"certidaoNumero\": \"CERT-001\",\n  \"dataEmissao\": \"2020-01-01\",\n  \"orgaoEmissor\": \"SSP\",\n  \"uf\": \"SP\",\n  \"ctpsN\": \"12345\",\n  \"serie\": \"001\",\n  \"mae\": \"Ana da Silva\",\n  \"pai\": \"José da Silva\",\n  \"estadoCivil\": \"SOLTEIRO\",\n  \"analfabeto\": false,\n  \"ensinoFundamental\": \"COMPLETO\",\n  \"ensinoMedio\": \"COMPLETO\",\n  \"ensinoSuperior\": \"INCOMPLETO\",\n  \"profissao\": \"Auxiliar\",\n  \"ocupacao\": \"Autônoma\",\n  \"situacaoEmprego\": \"EMPREGADO\",\n  \"renda\": 1500.0,\n  \"endereco\": \"Rua Teste\",\n  \"numero\": \"100\",\n  \"complemento\": \"Casa\",\n  \"bairro\": \"Centro\",\n  \"cep\": \"01001000\",\n  \"distrito\": \"Sé\",\n  \"telefoneResidencial\": \"1130000000\",\n  \"telefoneCelular\": \"11999999999\",\n  \"telefoneRecado\": \"11888888888\",\n  \"pontoReferencia\": \"Praça\",\n  \"condicaoMoradia\": \"ALUGADA\",\n  \"numeroComodos\": 3,\n  \"valorAluguel\": 900.0,\n  \"tipoConstrucao\": \"ALVENARIA\",\n  \"situacaoHabitacional\": \"FAVELA\",\n  \"recebeProgramaTransferenciaRenda\": true,\n  \"programaRenda\": \"BOLSA_FAMILIA\",\n  \"recebeBeneficioPrestacaoContinuada\": false,\n  \"tipoBeneficioPrestacaoContinuada\": \"IDOSO\",\n  \"composicaoFamiliar\": [\n    {\n      \"nome\": \"João da Silva\",\n      \"dataNascimento\": \"2010-05-10\",\n      \"parentesco\": \"Filho\",\n      \"profissao\": \"Estudante\",\n      \"ocupacao\": \"Estudante\",\n      \"renda\": 0,\n      \"fatoresRiscoSocial\": \"Nenhum\"\n    }\n  ],\n  \"informacoesComplementares\": [\n    {\n      \"nome\": \"João da Silva\",\n      \"estuda\": true,\n      \"grauInstrucao\": \"Fundamental\",\n      \"cca\": false,\n      \"cj\": false,\n      \"cedesp\": false,\n      \"nci\": false,\n      \"outroServico\": \"\"\n    }\n  ],\n  \"demandaApresentada\": \"Demanda teste\",\n  \"orientacoes\": \"Orientação teste\",\n  \"encaminhamentos\": \"Encaminhamento teste\",\n  \"tecnicoId\": 1,\n  \"data\": \"2026-06-02\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deletar",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/cadastro/{{fichaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "cadastro",
+                "{{fichaId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Visitas Domiciliares",
+      "item": [
+        {
+          "name": "Criar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/visitas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "visitas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeServicoSASF\": \"SASF Teste\",\n  \"cras\": \"CRAS Teste\",\n  \"tecnicoId\": 1,\n  \"dataPreenchimento\": \"2026-06-02\",\n  \"nomeRepresentanteFamilia\": \"Maria da Silva\",\n  \"numeroNIS_NIT_NB\": \"12345678901\",\n  \"endereco\": \"Rua Teste, 100\",\n  \"objetivoVisita\": \"Acompanhamento\",\n  \"pessoasEntrevistadas\": \"Maria\",\n  \"conteudoFolha\": \"Conteúdo teste\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/visitas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "visitas"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/visitas/{{fichaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "visitas",
+                "{{fichaId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/visitas/{{fichaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "visitas",
+                "{{fichaId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeServicoSASF\": \"SASF Teste\",\n  \"cras\": \"CRAS Teste\",\n  \"tecnicoId\": 1,\n  \"dataPreenchimento\": \"2026-06-02\",\n  \"nomeRepresentanteFamilia\": \"Maria da Silva\",\n  \"numeroNIS_NIT_NB\": \"12345678901\",\n  \"endereco\": \"Rua Teste, 100\",\n  \"objetivoVisita\": \"Acompanhamento\",\n  \"pessoasEntrevistadas\": \"Maria\",\n  \"conteudoFolha\": \"Conteúdo teste\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deletar",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/visitas/{{fichaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "visitas",
+                "{{fichaId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Folhas Prosseguimento",
+      "item": [
+        {
+          "name": "Criar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/folhas-prosseguimento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "folhas-prosseguimento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroFolha\": 1,\n  \"nomeRepresentanteFamilia\": \"Maria da Silva\",\n  \"numeroMatricula\": \"MAT-001\",\n  \"numeroNIS_BDC\": \"12345678901\",\n  \"conteudoFolha\": \"Conteúdo da folha\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/folhas-prosseguimento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "folhas-prosseguimento"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/folhas-prosseguimento/{{folhaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "folhas-prosseguimento",
+                "{{folhaId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/folhas-prosseguimento/{{folhaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "folhas-prosseguimento",
+                "{{folhaId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroFolha\": 1,\n  \"nomeRepresentanteFamilia\": \"Maria da Silva\",\n  \"numeroMatricula\": \"MAT-001\",\n  \"numeroNIS_BDC\": \"12345678901\",\n  \"conteudoFolha\": \"Conteúdo da folha\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deletar",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/folhas-prosseguimento/{{folhaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "folhas-prosseguimento",
+                "{{folhaId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Planos Desenvolvimento",
+      "item": [
+        {
+          "name": "Criar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/desenvolvimentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "desenvolvimentos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeServicoSASF\": \"SASF Teste\",\n  \"CAS\": \"CAS Centro\",\n  \"CRAS\": \"CRAS Teste\",\n  \"nomeRepresentanteFamilia\": \"Maria da Silva\",\n  \"numeroMatricula\": \"MAT-001\",\n  \"numeroNIS_BDC\": \"12345678901\",\n  \"numeroRG\": \"12345678\",\n  \"analiseDiagnostica\": \"Análise teste\",\n  \"objetivo\": \"Objetivo teste\",\n  \"itens\": [\n    {\n      \"estrategiasIntervencao\": \"Estratégia\",\n      \"CRAS\": \"Ação CRAS\",\n      \"familia\": \"Ação família\",\n      \"prazo\": \"30 dias\",\n      \"resultadosEsperados\": \"Resultado esperado\"\n    }\n  ],\n  \"numeroPlano\": \"PD-001\",\n  \"dataElaboracaoPlano\": \"2026-06-02\",\n  \"dataValidadePlano\": \"2026-12-02\",\n  \"dataReavaliacaoPlano\": \"2026-09-02\",\n  \"dataDesligamento\": null,\n  \"tecnico\": \"Técnico Teste\",\n  \"imagemAssinaturaURL\": \"https://example.com/assinatura.png\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/desenvolvimentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "desenvolvimentos"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/desenvolvimentos/{{planoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "desenvolvimentos",
+                "{{planoId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/desenvolvimentos/{{planoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "desenvolvimentos",
+                "{{planoId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeServicoSASF\": \"SASF Teste\",\n  \"CAS\": \"CAS Centro\",\n  \"CRAS\": \"CRAS Teste\",\n  \"nomeRepresentanteFamilia\": \"Maria da Silva\",\n  \"numeroMatricula\": \"MAT-001\",\n  \"numeroNIS_BDC\": \"12345678901\",\n  \"numeroRG\": \"12345678\",\n  \"analiseDiagnostica\": \"Análise teste\",\n  \"objetivo\": \"Objetivo teste\",\n  \"itens\": [\n    {\n      \"estrategiasIntervencao\": \"Estratégia\",\n      \"CRAS\": \"Ação CRAS\",\n      \"familia\": \"Ação família\",\n      \"prazo\": \"30 dias\",\n      \"resultadosEsperados\": \"Resultado esperado\"\n    }\n  ],\n  \"numeroPlano\": \"PD-001\",\n  \"dataElaboracaoPlano\": \"2026-06-02\",\n  \"dataValidadePlano\": \"2026-12-02\",\n  \"dataReavaliacaoPlano\": \"2026-09-02\",\n  \"dataDesligamento\": null,\n  \"tecnico\": \"Técnico Teste\",\n  \"imagemAssinaturaURL\": \"https://example.com/assinatura.png\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deletar",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/desenvolvimentos/{{planoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "desenvolvimentos",
+                "{{planoId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PDUs",
+      "item": [
+        {
+          "name": "Criar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/pdus",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "pdus"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeServicoSASF\": \"SASF Teste\",\n  \"CAS\": \"CAS Centro\",\n  \"CRAS\": \"CRAS Teste\",\n  \"nomeBeneficiario\": \"Beneficiário Teste\",\n  \"faixaEtaria\": \"ADULTO\",\n  \"nomeRepresentanteFamilia\": \"Maria da Silva\",\n  \"numeroNIS_NIT_NB\": \"12345678901\",\n  \"nomeCuidadorResponsavel\": \"Cuidador Teste\",\n  \"nomeTecnico\": \"Técnico Teste\",\n  \"sinteseSituacao\": \"Síntese teste\",\n  \"situacaoAgravo\": {\n    \"fragilizacaoVinculosFamiliares\": false,\n    \"rompimentoVinculosFamiliares\": false,\n    \"confinamento\": false,\n    \"isolamento\": false,\n    \"ausenciaCuidador\": false,\n    \"semAcessoEducacao\": false,\n    \"semAcessoSaude\": false,\n    \"semAcessoTransporte\": false,\n    \"semAcessoRede\": false,\n    \"violenciaDomestica\": false,\n    \"outras\": \"\"\n  },\n  \"acoesPropostas\": \"Ações propostas\",\n  \"acoesPactuadas\": \"Ações pactuadas\",\n  \"acoesIntersetoriais\": \"Ações intersetoriais\",\n  \"itens\": [\n    {\n      \"situacoesDeAgravoIdentificadas\": \"Situação\",\n      \"CRAS\": \"CRAS\",\n      \"CREAS\": \"CREAS\",\n      \"saude\": \"Saúde\",\n      \"educacao\": \"Educação\",\n      \"trabalho\": \"Trabalho\",\n      \"outros\": \"Outros\",\n      \"prazo\": \"30 dias\",\n      \"resultadosEsperados\": \"Resultado\"\n    }\n  ],\n  \"numeroPlano\": \"PDU-001\",\n  \"dataElaboracaoPlano\": \"2026-06-02\",\n  \"dataValidadePlano\": \"2026-12-02\",\n  \"dataReavaliacaoPlano\": \"2026-09-02\",\n  \"dataDesligamento\": null,\n  \"tecnico\": \"Técnico Teste\",\n  \"imagemAssinaturaURL\": \"https://example.com/assinatura.png\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/pdus",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "pdus"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/pdus/{{planoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "pdus",
+                "{{planoId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/pdus/{{planoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "pdus",
+                "{{planoId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeServicoSASF\": \"SASF Teste\",\n  \"CAS\": \"CAS Centro\",\n  \"CRAS\": \"CRAS Teste\",\n  \"nomeBeneficiario\": \"Beneficiário Teste\",\n  \"faixaEtaria\": \"ADULTO\",\n  \"nomeRepresentanteFamilia\": \"Maria da Silva\",\n  \"numeroNIS_NIT_NB\": \"12345678901\",\n  \"nomeCuidadorResponsavel\": \"Cuidador Teste\",\n  \"nomeTecnico\": \"Técnico Teste\",\n  \"sinteseSituacao\": \"Síntese teste\",\n  \"situacaoAgravo\": {\n    \"fragilizacaoVinculosFamiliares\": false,\n    \"rompimentoVinculosFamiliares\": false,\n    \"confinamento\": false,\n    \"isolamento\": false,\n    \"ausenciaCuidador\": false,\n    \"semAcessoEducacao\": false,\n    \"semAcessoSaude\": false,\n    \"semAcessoTransporte\": false,\n    \"semAcessoRede\": false,\n    \"violenciaDomestica\": false,\n    \"outras\": \"\"\n  },\n  \"acoesPropostas\": \"Ações propostas\",\n  \"acoesPactuadas\": \"Ações pactuadas\",\n  \"acoesIntersetoriais\": \"Ações intersetoriais\",\n  \"itens\": [\n    {\n      \"situacoesDeAgravoIdentificadas\": \"Situação\",\n      \"CRAS\": \"CRAS\",\n      \"CREAS\": \"CREAS\",\n      \"saude\": \"Saúde\",\n      \"educacao\": \"Educação\",\n      \"trabalho\": \"Trabalho\",\n      \"outros\": \"Outros\",\n      \"prazo\": \"30 dias\",\n      \"resultadosEsperados\": \"Resultado\"\n    }\n  ],\n  \"numeroPlano\": \"PDU-001\",\n  \"dataElaboracaoPlano\": \"2026-06-02\",\n  \"dataValidadePlano\": \"2026-12-02\",\n  \"dataReavaliacaoPlano\": \"2026-09-02\",\n  \"dataDesligamento\": null,\n  \"tecnico\": \"Técnico Teste\",\n  \"imagemAssinaturaURL\": \"https://example.com/assinatura.png\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deletar",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/pdus/{{planoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "pdus",
+                "{{planoId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Termos Autorização",
+      "item": [
+        {
+          "name": "Criar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/termos-autorizacao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "termos-autorizacao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Maria da Silva\",\n  \"rg\": \"12345678\",\n  \"cpf\": \"12345678901\",\n  \"criancas\": \"João da Silva\",\n  \"data\": \"2026-06-02\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/termos-autorizacao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "termos-autorizacao"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/termos-autorizacao/{{termoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "termos-autorizacao",
+                "{{termoId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/termos-autorizacao/{{termoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "termos-autorizacao",
+                "{{termoId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Maria da Silva\",\n  \"rg\": \"12345678\",\n  \"cpf\": \"12345678901\",\n  \"criancas\": \"João da Silva\",\n  \"data\": \"2026-06-02\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deletar",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/familias/{{familiaId}}/termos-autorizacao/{{termoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "familias",
+                "{{familiaId}}",
+                "termos-autorizacao",
+                "{{termoId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Transcrição",
+      "item": [
+        {
+          "name": "Transcrever áudio",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transcricao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transcricao"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "let jsonData = {}; try { jsonData = pm.response.json(); } catch(e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('lastId', jsonData.id);",
+                  "if (jsonData.codigo) pm.collectionVariables.set('codigo', jsonData.codigo);",
+                  "if (jsonData.codigoFamilia) pm.collectionVariables.set('codigoFamilia', jsonData.codigoFamilia);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "familiaId",
+      "value": "1"
+    },
+    {
+      "key": "codigoFamilia",
+      "value": "FAM-001"
+    },
+    {
+      "key": "usuarioId",
+      "value": "1"
+    },
+    {
+      "key": "userId",
+      "value": "1"
+    },
+    {
+      "key": "orientadorId",
+      "value": "1"
+    },
+    {
+      "key": "tecnicoId",
+      "value": "1"
+    },
+    {
+      "key": "codigoAudio",
+      "value": "AUD-001"
+    },
+    {
+      "key": "fichaId",
+      "value": "1"
+    },
+    {
+      "key": "folhaId",
+      "value": "1"
+    },
+    {
+      "key": "planoId",
+      "value": "1"
+    },
+    {
+      "key": "termoId",
+      "value": "1"
+    }
+  ]
+}

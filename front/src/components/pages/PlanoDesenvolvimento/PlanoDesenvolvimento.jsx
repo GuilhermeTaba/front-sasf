@@ -1,20 +1,10 @@
-import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { useState, useEffect } from 'react';
+import { Link, useParams, useNavigate } from 'react-router';
 import Layout from '../../Layout';
 import '../FichaAtualizacao/FichaAtualizacao.css';
 import '../NovoCadastro/NovosCadastro.css';
 import './PlanoDesenvolvimento.css';
 
-const FAMILIAS = [
-  { id: 1, responsavel: 'Carlos Oliveira',  tecnico: 'Ana Silva'     },
-  { id: 2, responsavel: 'Marta Lima',        tecnico: 'Ana Silva'     },
-  { id: 3, responsavel: 'João Ribeiro',      tecnico: 'Ana Silva'     },
-  { id: 4, responsavel: 'Fernanda Souza',    tecnico: 'Carlos Mendes' },
-  { id: 5, responsavel: 'Paulo Costa',       tecnico: 'Carlos Mendes' },
-  { id: 6, responsavel: 'Lúcia Pereira',     tecnico: 'Beatriz Rocha' },
-  { id: 7, responsavel: 'Ricardo Mendes',    tecnico: 'Beatriz Rocha' },
-  { id: 8, responsavel: 'Sandra Almeida',    tecnico: 'Elisa Tavares' },
-];
 
 const ANALISE_ITENS = [
   { key: 'composicao', label: 'Composição Familiar' },
@@ -32,40 +22,141 @@ const SectionTitle = ({ children }) => (
   </div>
 );
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+const parseDateBRpd = (str) => {
+  if (!str) return null;
+  const p = str.split('/');
+  if (p.length === 3 && p[2].length === 4) return `${p[2]}-${p[1]}-${p[0]}`;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  return null;
+};
+
 const PlanoDesenvolvimento = () => {
   const { id }   = useParams();
-  const familia  = FAMILIAS.find(f => f.id === Number(id)) || FAMILIAS[0];
+  const navigate = useNavigate();
+  const [familia, setFamilia] = useState(null);
 
   const [form, setForm] = useState({
     servico: 'SASF Chico Mendes',
     cas: '', cras: '',
-    representante: familia.responsavel,
+    representante: '',
     matricula: '', nis: '', rg: '',
     composicao: '', moradia: '', saude: '', educacao: '', divida: '',
     objetivo: '',
     planoNum: '', dataElaboracao: '', dataValidade: '',
     dataReavaliacao: '', dataDesligamento: '',
-    tecnicoRef: familia.tecnico,
+    tecnicoId: '',
     assinatura: '',
   });
 
   const [acoes, setAcoes] = useState(Array.from({ length: 8 }, emptyAcao));
+  const [saving, setSaving] = useState(false);
+  const [error, setError]   = useState('');
+  const [tecnicos, setTecnicos] = useState([]);
+
+  useEffect(() => {
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+    fetch(`${API_URL}/tecnicos`, { headers })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setTecnicos(Array.isArray(data) ? data : []))
+      .catch(() => {});
+    if (id) {
+      fetch(`${API_URL}/familias/${id}`, { headers })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (!data) return;
+          const responsavel = data.nomeRepresentante || data.nomeRepresentanteFamilia || '';
+          setFamilia({ id: data.id, responsavel });
+          setForm(f => ({ ...f, representante: responsavel }));
+        })
+        .catch(() => {});
+    }
+  }, [id]);
+
+  const maskDate = v => {
+    const d = v.replace(/\D/g, '').slice(0, 8);
+    if (d.length <= 2) return d;
+    if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
+    return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`;
+  };
+
+  const DATE_FIELDS = new Set(['dataElaboracao', 'dataValidade', 'dataReavaliacao', 'dataDesligamento']);
 
   const handle = e => {
     const { name, value } = e.target;
-    setForm(f => ({ ...f, [name]: value }));
+    setForm(f => ({ ...f, [name]: DATE_FIELDS.has(name) ? maskDate(value) : value }));
   };
 
   const handleAcao = (idx, field, value) =>
     setAcoes(a => a.map((ac, i) => i === idx ? { ...ac, [field]: value } : ac));
+
+  const handleSubmit = async () => {
+    setSaving(true);
+    setError('');
+    const analiseDiagnostica = [
+      form.composicao && `Composição Familiar: ${form.composicao}`,
+      form.moradia    && `Moradia: ${form.moradia}`,
+      form.saude      && `Saúde: ${form.saude}`,
+      form.educacao   && `Educação: ${form.educacao}`,
+      form.divida     && `Dívida: ${form.divida}`,
+    ].filter(Boolean).join('\n');
+    const itens = acoes.filter(a => a.estrategia || a.acaoCras || a.acaoFamilia).map(a => ({
+      estrategiasIntervencao: a.estrategia,
+      CRAS: a.acaoCras,
+      familia: a.acaoFamilia,
+      prazo: a.prazo,
+      resultadosEsperados: a.resultado,
+    }));
+    const payload = {
+      nomeServicoSASF: form.servico,
+      CAS: form.cas,
+      CRAS: form.cras,
+      nomeRepresentanteFamilia: form.representante,
+      numeroMatricula: form.matricula,
+      numeroNIS_BDC: form.nis,
+      numeroRG: form.rg,
+      analiseDiagnostica,
+      objetivo: form.objetivo,
+      itens,
+      numeroPlano: form.planoNum,
+      dataElaboracaoPlano: parseDateBRpd(form.dataElaboracao),
+      dataValidadePlano: parseDateBRpd(form.dataValidade),
+      dataReavaliacaoPlano: parseDateBRpd(form.dataReavaliacao),
+      dataDesligamento: parseDateBRpd(form.dataDesligamento),
+      tecnico: tecnicos.find(t => String(t.id) === form.tecnicoId)?.nome || null,
+      imagemAssinaturaURL: form.assinatura,
+    };
+    console.log('[PlanoDesenvolvimento] POST payload:', payload);
+    try {
+      const res = await fetch(`${API_URL}/familias/${id}/desenvolvimentos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      navigate(`/detalhes-familia/${id}`, { state: { tab: 'planoDesenvolvimento' } });
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <Layout>
       {/* breadcrumb */}
       <div className="breadcrumb">
         <Link to="/familias" className="bc-link">Famílias</Link>
-        <span className="bc-sep">›</span>
-        <Link to={`/detalhes-familia/${familia.id}`} className="bc-link">{familia.responsavel}</Link>
+        {familia && (
+          <>
+            <span className="bc-sep">›</span>
+            <Link to={`/detalhes-familia/${id}`} className="bc-link">{familia.responsavel}</Link>
+          </>
+        )}
         <span className="bc-sep">›</span>
         <span className="bc-current">Plano de Desenvolvimento Familiar</span>
       </div>
@@ -199,7 +290,12 @@ const PlanoDesenvolvimento = () => {
         <div className="fa-grid-2" style={{ marginTop: 14 }}>
           <div className="fa-field">
             <label>Técnico de Referência do Atendimento</label>
-            <input name="tecnicoRef" value={form.tecnicoRef} onChange={handle} className="fa-input" />
+            <select name="tecnicoId" value={form.tecnicoId} onChange={handle} className="fa-input">
+              <option value="">Selecione um técnico...</option>
+              {tecnicos.map(t => (
+                <option key={t.id} value={t.id}>{t.nome}</option>
+              ))}
+            </select>
           </div>
           <div className="fa-field">
             <label>Assinatura do Responsável pela Família</label>
@@ -207,15 +303,16 @@ const PlanoDesenvolvimento = () => {
           </div>
         </div>
 
+        {error && <p style={{ color: '#dc2626', margin: '8px 0' }}>{error}</p>}
         <div className="form-actions">
-          <Link to={`/detalhes-familia/${familia.id}`} className="btn-secondary">← Voltar</Link>
-          <button className="btn-secondary" onClick={() => {}}>Salvar rascunho</button>
-          <button className="btn-primary btn-success">
+          <Link to={`/detalhes-familia/${id}`} className="btn-secondary">← Voltar</Link>
+
+          <button className="btn-primary btn-success" onClick={handleSubmit} disabled={saving}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
               strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            Salvar plano de desenvolvimento
+            {saving ? 'Salvando…' : 'Salvar plano de desenvolvimento'}
           </button>
         </div>
 

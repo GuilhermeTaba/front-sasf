@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useParams, useNavigate } from 'react-router';
 import Layout from '../../Layout';
 import '../FichaAtualizacao/FichaAtualizacao.css';
 import '../NovoCadastro/NovosCadastro.css';
@@ -21,8 +21,11 @@ const SectionTitle = ({ children }) => (
   </div>
 );
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
 const FolhaProsseguimento = () => {
   const { id }   = useParams();
+  const navigate = useNavigate();
   const familia  = FAMILIAS.find(f => f.id === Number(id)) || FAMILIAS[0];
 
   const [form, setForm] = useState({
@@ -33,9 +36,39 @@ const FolhaProsseguimento = () => {
     demandas: '',
   });
 
+  const [saving, setSaving] = useState(false);
+  const [error, setError]   = useState('');
+
   const handle = e => {
     const { name, value } = e.target;
     setForm(f => ({ ...f, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
+    setSaving(true);
+    setError('');
+    try {
+      const res = await fetch(`${API_URL}/familias/${id}/folhas-prosseguimento`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          numeroFolha: form.numero ? Number(form.numero) : null,
+          nomeRepresentanteFamilia: form.representante,
+          numeroMatricula: form.matricula,
+          numeroNIS_BDC: form.nis,
+          conteudoFolha: form.demandas,
+        }),
+      });
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      navigate(`/detalhes-familia/${id}`, { state: { tab: 'folhaProsseguimento' } });
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -91,15 +124,16 @@ const FolhaProsseguimento = () => {
             placeholder="Data — Técnico responsável — Demanda / Orientação / Encaminhamento..." />
         </div>
 
+        {error && <p style={{ color: '#dc2626', margin: '8px 0' }}>{error}</p>}
         <div className="form-actions">
           <Link to={`/detalhes-familia/${familia.id}`} className="btn-secondary">← Voltar</Link>
-          <button className="btn-secondary" onClick={() => {}}>Salvar rascunho</button>
-          <button className="btn-primary btn-success">
+
+          <button className="btn-primary btn-success" onClick={handleSubmit} disabled={saving}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
               strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            Salvar folha de prosseguimento
+            {saving ? 'Salvando…' : 'Salvar folha de prosseguimento'}
           </button>
         </div>
 

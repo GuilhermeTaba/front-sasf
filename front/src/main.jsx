@@ -33,17 +33,23 @@ createRoot(document.getElementById('root')).render(
         <Route path="/"                   element={<Login />} />
         <Route path="/dashboard"          element={<Dashboard />} />
         <Route path="/familias"           element={<Familias />} />
-        <Route path="/novo-cadastro"        element={<NovosCadastro />} />
-        <Route path="/novo-cadastro/:id"   element={<NovosCadastro />} />
+        <Route path="/novo-cadastro"                  element={<NovosCadastro />} />
+        <Route path="/novo-cadastro/:id"            element={<NovosCadastro />} />
+        <Route path="/novo-cadastro/:id/:fichaId"   element={<NovosCadastro />} />
         <Route path="/atendimentos"       element={<Atendimentos />} />
-        <Route path="/novo-atendimento"   element={<NovoAtendimento />} />
+        <Route path="/novo-atendimento"                                   element={<NovoAtendimento />} />
+        <Route path="/novo-atendimento/:familiaId"                      element={<NovoAtendimento />} />
+        <Route path="/novo-atendimento/:familiaId/:atendimentoId"       element={<NovoAtendimento />} />
         <Route path="/agenda"             element={<Agenda />} />
         <Route path="/painel-admin"          element={<AdminRoute element={<PainelAdmin />} />} />
         <Route path="/detalhes-familia/:id"   element={<DetalhesFamilia />} />
         <Route path="/ficha-atualizacao/:id"                      element={<FichaAtualizacao />} />
+        <Route path="/ficha-atualizacao/:id/:fichaId"            element={<FichaAtualizacao />} />
         <Route path="/termo-imagem/:id"                            element={<TermoImagem />} />
+        <Route path="/termo-imagem/:id/:termoId"                  element={<TermoImagem />} />
 
         <Route path="/ficha-visita/:id"                            element={<FichaVisitaDomiciliar />} />
+        <Route path="/ficha-visita/:id/:fichaId"                  element={<FichaVisitaDomiciliar />} />
         <Route path="/plano-desenvolvimento/:id"                   element={<PlanoDesenvolvimento />} />
         <Route path="/plano-pdu/:id"                               element={<PlanoDesenvolvimentoPDU />} />
         <Route path="/folha-prosseguimento/:id"                    element={<FolhaProsseguimento />} />
