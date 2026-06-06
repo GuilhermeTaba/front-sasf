@@ -183,6 +183,38 @@ const DetalhesFamilia = () => {
         }));
       })
       .catch(() => {});
+
+    fetch(`${API_URL}/familias/${id}/pdus`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(list => {
+        const items = Array.isArray(list) ? list : (list ? [list] : []);
+        if (!items.length) return;
+        setListas(prev => ({
+          ...prev,
+          planoPDU: items.map(data => ({
+            id:   data.id,
+            data: toDateBR(data.dataElaboracaoPlano) || '—',
+            tecnico: data.tecnico || data.nomeTecnico || '—',
+          })),
+        }));
+      })
+      .catch(() => {});
+
+    fetch(`${API_URL}/familias/${id}/folhas-prosseguimento`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(list => {
+        const items = Array.isArray(list) ? list : (list ? [list] : []);
+        if (!items.length) return;
+        setListas(prev => ({
+          ...prev,
+          folhaProsseguimento: items.map(data => ({
+            id:      data.id,
+            data:    data.numeroFolha != null ? `Folha ${data.numeroFolha}` : '—',
+            tecnico: data.nomeRepresentanteFamilia || '—',
+          })),
+        }));
+      })
+      .catch(() => {});
   }, [id]);
 
   const addFiles = files => {
@@ -329,6 +361,7 @@ const DetalhesFamilia = () => {
       itemLabel:    'PDU',
       novaLabel:    'Novo PDU',
       novaPath:     `/plano-pdu/${id}`,
+      itemPath:     (item) => `/plano-pdu/${id}/${item.id}`,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
@@ -348,6 +381,7 @@ const DetalhesFamilia = () => {
       itemLabel:    'Folha de Prosseguimento',
       novaLabel:    'Nova Folha de Prosseguimento',
       novaPath:     `/folha-prosseguimento/${id}`,
+      itemPath:     (item) => `/folha-prosseguimento/${id}/${item.id}`,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
@@ -621,7 +655,7 @@ const DetalhesFamilia = () => {
                     )}
                   </div>
 
-                  {(selected === 'cadastral' || selected === 'termo' || selected === 'visita' || selected === 'atualizacao' || selected === 'planoDesenvolvimento') && (() => {
+                  {(selected === 'cadastral' || selected === 'termo' || selected === 'visita' || selected === 'atualizacao' || selected === 'planoDesenvolvimento' || selected === 'planoPDU' || selected === 'folhaProsseguimento') && (() => {
                     const pdfUrl = selected === 'cadastral'
                       ? `${API_URL}/familias/${id}/cadastro/${item.id}/pdf`
                       : selected === 'visita'
@@ -630,7 +664,11 @@ const DetalhesFamilia = () => {
                           ? `${API_URL}/familias/${id}/atualizacoes/${item.id}/pdf`
                           : selected === 'planoDesenvolvimento'
                             ? `${API_URL}/familias/${id}/desenvolvimentos/${item.id}/pdf`
-                            : `${API_URL}/familias/${id}/termos-autorizacao/${item.id}/pdf`;
+                            : selected === 'planoPDU'
+                              ? `${API_URL}/familias/${id}/pdus/${item.id}/pdf`
+                              : selected === 'folhaProsseguimento'
+                                ? `${API_URL}/familias/${id}/folhas-prosseguimento/${item.id}/pdf`
+                                : `${API_URL}/familias/${id}/termos-autorizacao/${item.id}/pdf`;
                     return (
                       <a
                         href={pdfUrl}

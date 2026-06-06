@@ -53,7 +53,9 @@ createRoot(document.getElementById('root')).render(
         <Route path="/plano-desenvolvimento/:id"                   element={<PlanoDesenvolvimento />} />
         <Route path="/plano-desenvolvimento/:id/:planoId"         element={<PlanoDesenvolvimento />} />
         <Route path="/plano-pdu/:id"                               element={<PlanoDesenvolvimentoPDU />} />
+        <Route path="/plano-pdu/:id/:planoId"                    element={<PlanoDesenvolvimentoPDU />} />
         <Route path="/folha-prosseguimento/:id"                    element={<FolhaProsseguimento />} />
+        <Route path="/folha-prosseguimento/:id/:folhaId"          element={<FolhaProsseguimento />} />
         <Route path="/criar-conta"            element={<CriarConta />} />
         <Route path="/esqueci-senha"          element={<EsqueciSenha />} />
         <Route path="/redefinir-senha"        element={<RedefinirSenha />} />

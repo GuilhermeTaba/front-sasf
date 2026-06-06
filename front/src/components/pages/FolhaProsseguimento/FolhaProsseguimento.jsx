@@ -1,19 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router';
 import Layout from '../../Layout';
 import '../FichaAtualizacao/FichaAtualizacao.css';
 import '../NovoCadastro/NovosCadastro.css';
 
-const FAMILIAS = [
-  { id: 1, responsavel: 'Carlos Oliveira',  tecnico: 'Ana Silva'     },
-  { id: 2, responsavel: 'Marta Lima',        tecnico: 'Ana Silva'     },
-  { id: 3, responsavel: 'João Ribeiro',      tecnico: 'Ana Silva'     },
-  { id: 4, responsavel: 'Fernanda Souza',    tecnico: 'Carlos Mendes' },
-  { id: 5, responsavel: 'Paulo Costa',       tecnico: 'Carlos Mendes' },
-  { id: 6, responsavel: 'Lúcia Pereira',     tecnico: 'Beatriz Rocha' },
-  { id: 7, responsavel: 'Ricardo Mendes',    tecnico: 'Beatriz Rocha' },
-  { id: 8, responsavel: 'Sandra Almeida',    tecnico: 'Elisa Tavares' },
-];
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 const SectionTitle = ({ children }) => (
   <div className="fa-section-divider">
@@ -21,23 +12,46 @@ const SectionTitle = ({ children }) => (
   </div>
 );
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-
 const FolhaProsseguimento = () => {
-  const { id }   = useParams();
+  const { id, folhaId } = useParams();
   const navigate = useNavigate();
-  const familia  = FAMILIAS.find(f => f.id === Number(id)) || FAMILIAS[0];
 
   const [form, setForm] = useState({
     numero: '',
-    representante: familia.responsavel,
+    representante: '',
     matricula: '',
     nis: '',
     demandas: '',
   });
 
-  const [saving, setSaving] = useState(false);
-  const [error, setError]   = useState('');
+  const [familiaName, setFamiliaName] = useState('');
+  const [saving, setSaving]           = useState(false);
+  const [error, setError]             = useState('');
+
+  useEffect(() => {
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+    fetch(`${API_URL}/familias/${id}`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setFamiliaName(d.nomeRepresentante || d.nomeRepresentanteFamilia || ''); })
+      .catch(() => {});
+  }, [id]);
+
+  useEffect(() => {
+    if (!folhaId) return;
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+    fetch(`${API_URL}/familias/${id}/folhas-prosseguimento/${folhaId}`, { headers })
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(d => {
+        setForm({
+          numero:        d.numeroFolha != null ? String(d.numeroFolha) : '',
+          representante: d.nomeRepresentanteFamilia || '',
+          matricula:     d.numeroMatricula || '',
+          nis:           d.numeroNIS_BDC || '',
+          demandas:      d.conteudoFolha || '',
+        });
+      })
+      .catch(() => setError('Erro ao carregar dados'));
+  }, [id, folhaId]);
 
   const handle = e => {
     const { name, value } = e.target;
@@ -48,21 +62,30 @@ const FolhaProsseguimento = () => {
     setSaving(true);
     setError('');
     try {
-      const res = await fetch(`${API_URL}/familias/${id}/folhas-prosseguimento`, {
-        method: 'POST',
+      const endpoint = folhaId
+        ? `${API_URL}/familias/${id}/folhas-prosseguimento/${folhaId}`
+        : `${API_URL}/familias/${id}/folhas-prosseguimento`;
+      const method = folhaId ? 'PUT' : 'POST';
+
+      const res = await fetch(endpoint, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
-          numeroFolha: form.numero ? Number(form.numero) : null,
-          nomeRepresentanteFamilia: form.representante,
-          numeroMatricula: form.matricula,
-          numeroNIS_BDC: form.nis,
-          conteudoFolha: form.demandas,
+          numeroFolha:              form.numero ? Number(form.numero) : null,
+          nomeRepresentanteFamilia: form.representante || null,
+          numeroMatricula:          form.matricula || null,
+          numeroNIS_BDC:            form.nis || null,
+          conteudoFolha:            form.demandas || null,
         }),
       });
-      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      if (!res.ok) {
+        const body = await res.text();
+        console.error('FolhaProsseguimento error:', body);
+        throw new Error(`Erro ${res.status}`);
+      }
       navigate(`/detalhes-familia/${id}`, { state: { tab: 'folhaProsseguimento' } });
     } catch (e) {
       setError(e.message);
@@ -73,16 +96,16 @@ const FolhaProsseguimento = () => {
 
   return (
     <Layout>
-      {/* breadcrumb */}
       <div className="breadcrumb">
         <Link to="/familias" className="bc-link">Famílias</Link>
         <span className="bc-sep">›</span>
-        <Link to={`/detalhes-familia/${familia.id}`} className="bc-link">{familia.responsavel}</Link>
+        <Link to={`/detalhes-familia/${id}`} className="bc-link">
+          {familiaName || `Família ${id}`}
+        </Link>
         <span className="bc-sep">›</span>
         <span className="bc-current">Folha de Prosseguimento</span>
       </div>
 
-      {/* header */}
       <div className="page-header" style={{ marginBottom: 20 }}>
         <div>
           <p className="page-section" style={{ color: '#475569', fontWeight: 700 }}>Acompanhamento</p>
@@ -126,7 +149,7 @@ const FolhaProsseguimento = () => {
 
         {error && <p style={{ color: '#dc2626', margin: '8px 0' }}>{error}</p>}
         <div className="form-actions">
-          <Link to={`/detalhes-familia/${familia.id}`} className="btn-secondary">← Voltar</Link>
+          <Link to={`/detalhes-familia/${id}`} className="btn-secondary">← Voltar</Link>
 
           <button className="btn-primary btn-success" onClick={handleSubmit} disabled={saving}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
