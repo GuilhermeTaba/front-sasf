@@ -29,6 +29,8 @@ const mapFamilia = (f, i) => ({
   _colorIdx:   i,
 });
 
+const PALETA = ['#1d4ed8','#f59e0b','#8b5cf6','#0891b2','#16a34a','#dc2626','#ec4899','#f97316'];
+
 const Familias = () => {
   const navigate = useNavigate();
   const [tab, setTab] = useState('todas');
@@ -36,6 +38,8 @@ const Familias = () => {
   const [familias, setFamilias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState('');
+  const [filtroTecnico, setFiltroTecnico] = useState(null);
+  const [filtroOrientador, setFiltroOrientador] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -57,11 +61,16 @@ const Familias = () => {
   const countByStatus = s => familias.filter(f => f.status === s).length;
 
   const TABS = [
-    { key: 'todas',   label: 'Todas',   count: familias.length          },
-    { key: 'ok',      label: 'Ok',      count: countByStatus('ok')      },
-    { key: 'atencao', label: 'Atenção', count: countByStatus('atencao') },
-    { key: 'urgente', label: 'Urgente', count: countByStatus('urgente') },
+    { key: 'todas',   label: 'Todas',   count: familias.length,          dot: null,      activeBg: '#0d2557', activeColor: '#fff',    activeBorder: '#0d2557', badgeBg: 'rgba(255,255,255,0.18)', badgeColor: '#fff'    },
+    { key: 'ok',      label: 'Ok',      count: countByStatus('ok'),      dot: '#16a34a', activeBg: '#dcfce7', activeColor: '#166534', activeBorder: '#86efac', badgeBg: 'rgba(22,101,52,0.15)',   badgeColor: '#166534' },
+    { key: 'atencao', label: 'Atenção', count: countByStatus('atencao'), dot: '#d97706', activeBg: '#fef3c7', activeColor: '#92400e', activeBorder: '#fcd34d', badgeBg: 'rgba(146,64,14,0.15)',   badgeColor: '#92400e' },
+    { key: 'urgente', label: 'Urgente', count: countByStatus('urgente'), dot: '#dc2626', activeBg: '#fee2e2', activeColor: '#991b1b', activeBorder: '#fca5a5', badgeBg: 'rgba(153,27,27,0.15)',   badgeColor: '#991b1b' },
   ];
+
+  const STATUS_ORDER = { urgente: 0, atencao: 1, ok: 2 };
+
+  const tecnicos    = [...new Set(familias.map(f => f.tecnico).filter(t => t && t !== '—'))];
+  const orientadores = [...new Set(familias.map(f => f.orientador).filter(o => o && o !== '—'))];
 
   const filtered = (tab === 'todas'
     ? familias
@@ -70,7 +79,9 @@ const Familias = () => {
     !search ||
     f.responsavel.toLowerCase().includes(search.toLowerCase()) ||
     f.codigo.toLowerCase().includes(search.toLowerCase())
-  );
+  ).filter(f => !filtroTecnico    || f.tecnico    === filtroTecnico)
+   .filter(f => !filtroOrientador || f.orientador === filtroOrientador)
+   .sort((a, b) => (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3));
 
   return (
     <Layout>
@@ -89,20 +100,88 @@ const Familias = () => {
       </div>
 
       {/* ── TABS ── */}
-      <div className="tabs">
-        {TABS.map(t => (
-          <button
-            key={t.key}
-            className={`tab${tab === t.key ? ' tab--active' : ''}`}
-            onClick={() => setTab(t.key)}
-          >
-            {t.label}<span className="tab-count">({t.count})</span>
-          </button>
-        ))}
+      <div className="fam-tabs">
+        {TABS.map(t => {
+          const ativo = tab === t.key;
+          return (
+            <button
+              key={t.key}
+              className={`fam-tab${ativo ? ' fam-tab--on' : ''}`}
+              style={ativo ? { background: t.activeBg, color: t.activeColor, borderColor: t.activeBorder } : {}}
+              onClick={() => setTab(t.key)}
+            >
+              {t.dot && <span className="fam-tab-dot" style={{ background: ativo ? t.activeColor : t.dot }} />}
+              {t.label}
+              <span
+                className="fam-tab-count"
+                style={ativo ? { background: t.badgeBg, color: t.badgeColor } : {}}
+              >
+                {t.count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* ── TABLE ── */}
+      {/* ── TABLE + FILTROS ── */}
       <div className="table-card">
+
+        {/* Filtros */}
+        {!loading && !fetchError && (
+          <div className="fam-filter-section">
+            <div className="fam-filter-row">
+              <span className="fam-filter-label">Técnico</span>
+              <div className="fam-filter-btns">
+                <button
+                  className={`fam-filter-btn${filtroTecnico === null ? ' fam-filter-btn--on' : ''}`}
+                  onClick={() => setFiltroTecnico(null)}
+                >
+                  Todos
+                </button>
+                {tecnicos.map((t, i) => {
+                  const ativo = filtroTecnico === t;
+                  return (
+                    <button
+                      key={t}
+                      className={`fam-filter-btn${ativo ? ' fam-filter-btn--on' : ''}`}
+                      style={ativo ? { background: PALETA[i % PALETA.length], borderColor: PALETA[i % PALETA.length], color: '#fff' } : {}}
+                      onClick={() => setFiltroTecnico(ativo ? null : t)}
+                    >
+                      <span className="fam-filter-dot" style={{ background: ativo ? '#fff' : PALETA[i % PALETA.length] }} />
+                      {t}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="fam-filter-row">
+              <span className="fam-filter-label">Orientador</span>
+              <div className="fam-filter-btns">
+                <button
+                  className={`fam-filter-btn${filtroOrientador === null ? ' fam-filter-btn--on' : ''}`}
+                  onClick={() => setFiltroOrientador(null)}
+                >
+                  Todos
+                </button>
+                {orientadores.map((o, i) => {
+                  const ativo = filtroOrientador === o;
+                  return (
+                    <button
+                      key={o}
+                      className={`fam-filter-btn${ativo ? ' fam-filter-btn--on' : ''}`}
+                      style={ativo ? { background: PALETA[i % PALETA.length], borderColor: PALETA[i % PALETA.length], color: '#fff' } : {}}
+                      onClick={() => setFiltroOrientador(ativo ? null : o)}
+                    >
+                      <span className="fam-filter-dot" style={{ background: ativo ? '#fff' : PALETA[i % PALETA.length] }} />
+                      {o}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Toolbar */}
         <div className="table-toolbar">
@@ -118,13 +197,6 @@ const Familias = () => {
               onChange={e => setSearch(e.target.value)}
             />
           </div>
-          <div className="toolbar-spacer" />
-          <button className="btn-secondary">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-            </svg>
-            Exportar
-          </button>
         </div>
 
         {loading && (
@@ -153,7 +225,7 @@ const Familias = () => {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((f, i) => {
+                {filtered.map((f) => {
                   const st = STATUS_MAP[f.status] || STATUS_MAP.ok;
                   return (
                     <tr key={f.id} className="data-row">
@@ -161,7 +233,7 @@ const Familias = () => {
                         <div className="fam-name-cell">
                           <div
                             className="fam-avatar"
-                            style={{ background: COLORS[i % COLORS.length] }}
+                            style={{ background: COLORS[f._colorIdx % COLORS.length] }}
                           >
                             {f.responsavel.charAt(0)}
                           </div>
