@@ -83,7 +83,6 @@ const FolhaProsseguimento = () => {
       });
       if (!res.ok) {
         const body = await res.text();
-        console.error('FolhaProsseguimento error:', body);
         throw new Error(`Erro ${res.status}`);
       }
       navigate(`/detalhes-familia/${id}`, { state: { tab: 'folhaProsseguimento' } });

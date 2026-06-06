@@ -137,7 +137,6 @@ const NovosCadastro = () => {
   }, []);
 
   useEffect(() => {
-    console.log('[NovosCadastro] useEffect disparado — id:', id, '| fichaIdParam:', fichaIdParam);
     if (!id) return;
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
 
@@ -147,12 +146,9 @@ const NovosCadastro = () => {
       return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
     };
 
-    // Busca dados básicos da família para breadcrumb / fallback
-    console.log('[NovosCadastro] buscando familia:', `${API_URL}/familias/${id}`);
     fetch(`${API_URL}/familias/${id}`, { headers })
       .then(r => r.ok ? r.json() : null)
       .then(data => {
-        console.log('[NovosCadastro] familia response:', data);
         if (!data) return;
         setFamilia({
           id: data.id,
@@ -164,8 +160,6 @@ const NovosCadastro = () => {
       })
       .catch(() => {});
 
-    // Busca ficha cadastral existente e pré-preenche o formulário (só no modo edição)
-    console.log('[NovosCadastro] fichaIdParam é', fichaIdParam, '→', fichaIdParam ? 'modo EDIÇÃO (PUT)' : 'modo NOVO (POST) — resetando form');
     if (!fichaIdParam) {
       setCadastroId(null);
       setForm({
@@ -194,11 +188,9 @@ const NovosCadastro = () => {
       setComplementares(Array.from({ length: 12 }, emptyComplementar));
       return;
     }
-    console.log('[NovosCadastro] buscando ficha:', `${API_URL}/familias/${id}/cadastro/${fichaIdParam}`);
     fetch(`${API_URL}/familias/${id}/cadastro/${fichaIdParam}`, { headers })
       .then(r => r.ok ? r.json() : null)
       .then(res => {
-        console.log('[NovosCadastro] ficha response:', res);
         const data = Array.isArray(res) ? res[0] : res;
         if (!data) return;
         setCadastroId(data.id ?? null);
@@ -485,7 +477,6 @@ const NovosCadastro = () => {
         let msg = `Erro ${res.status}`;
         try {
           const body = await res.json();
-          console.error('[NovosCadastro] Erro backend:', JSON.stringify(body, null, 2));
           msg = body.message || body.error || body.detalhe || body.errors?.[0]?.defaultMessage || JSON.stringify(body);
         } catch { /* body não é JSON */ }
         throw new Error(msg);

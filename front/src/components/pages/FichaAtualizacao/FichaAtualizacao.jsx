@@ -259,7 +259,6 @@ const FichaAtualizacao = () => {
       ? `${API_URL}/familias/${id}/atualizacoes/${fichaId}`
       : `${API_URL}/familias/${id}/atualizacoes`;
     const method = fichaId ? 'PUT' : 'POST';
-    console.log(`[FichaAtualizacao] ${method}`, endpoint, payload);
     try {
       const res = await fetch(endpoint, {
         method,
