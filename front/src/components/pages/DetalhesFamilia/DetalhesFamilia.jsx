@@ -59,6 +59,11 @@ const DetalhesFamilia = () => {
   const [familia, setFamilia]   = useState(null);
   const [loading, setLoading]   = useState(true);
   const [listas, setListas]     = useState(LISTAS_EMPTY);
+  const [tecnicos, setTecnicos]         = useState([]);
+  const [orientadores, setOrientadores] = useState([]);
+  const [gestao, setGestao]             = useState({ urgencia: '', tecnicoId: '', orientadorId: '' });
+  const [savingGestao, setSavingGestao] = useState(false);
+  const [gestaoMsg, setGestaoMsg]       = useState('');
 
   useEffect(() => {
     if (!id) return;
@@ -69,17 +74,33 @@ const DetalhesFamilia = () => {
       .then(data => {
         if (!data) return;
         setFamilia({
-          id:         data.id,
+          id:          data.id,
           responsavel: data.nomeRepresentante || data.nomeRepresentanteFamilia || '—',
-          tecnico:    data.tecnicoNome || data.tecnico?.nome || data.tecnico || '—',
-          regiao:     data.codigoFamilia || data.bairro || data.regiao || '—',
-          membros:    data.totalMembros ?? data.composicaoFamiliar?.length ?? 0,
-          tel:        data.telefoneCelular || data.telefoneResidencial || '—',
-          status:     mapUrgencia(data.nivelUrgencia || data.status),
+          tecnico:     data.tecnicoNome || data.tecnico?.nome || '—',
+          orientador:  data.orientadorNome || data.orientador?.nome || '—',
+          regiao:      data.codigoFamilia || data.bairro || data.regiao || '—',
+          membros:     data.totalMembros ?? data.composicaoFamiliar?.length ?? 0,
+          tel:         data.telefoneCelular || data.telefoneResidencial || '—',
+          status:      mapUrgencia(data.nivelUrgencia || data.status),
+        });
+        setGestao({
+          urgencia:     data.nivelUrgencia || '',
+          tecnicoId:    String(data.tecnico?.id ?? data.tecnicoId ?? ''),
+          orientadorId: String(data.orientador?.id ?? data.orientadorId ?? ''),
         });
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    fetch(`${API_URL}/tecnicos`, { headers })
+      .then(r => r.ok ? r.json() : [])
+      .then(d => setTecnicos(Array.isArray(d) ? d : []))
+      .catch(() => {});
+
+    fetch(`${API_URL}/orientadores`, { headers })
+      .then(r => r.ok ? r.json() : [])
+      .then(d => setOrientadores(Array.isArray(d) ? d : []))
+      .catch(() => {});
 
     const toDateBR = iso => {
       if (!iso) return '';
@@ -216,6 +237,53 @@ const DetalhesFamilia = () => {
       })
       .catch(() => {});
   }, [id]);
+
+  const handleSaveGestao = async () => {
+    setSavingGestao(true);
+    setGestaoMsg('');
+    const authHeader = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+    const erros = [];
+
+    try {
+      const res = await fetch(`${API_URL}/familias/${id}/nivel-urgencia`, {
+        method: 'PATCH',
+        headers: { ...authHeader, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nivelUrgencia: gestao.urgencia || null }),
+      });
+      if (!res.ok) erros.push(`Urgência: erro ${res.status}`);
+      else setFamilia(f => ({ ...f, status: mapUrgencia(gestao.urgencia) }));
+    } catch { erros.push('Urgência: falha de rede'); }
+
+    if (gestao.tecnicoId) {
+      try {
+        const res = await fetch(`${API_URL}/familias/${id}/tecnico/${gestao.tecnicoId}`, {
+          method: 'PUT',
+          headers: authHeader,
+        });
+        if (!res.ok) erros.push(`Técnico: erro ${res.status}`);
+        else setFamilia(f => ({ ...f, tecnico: tecnicos.find(t => String(t.id) === gestao.tecnicoId)?.nome || f.tecnico }));
+      } catch { erros.push('Técnico: falha de rede'); }
+    }
+
+    if (gestao.orientadorId) {
+      try {
+        const res = await fetch(`${API_URL}/familias/${id}/orientador/${gestao.orientadorId}`, {
+          method: 'PUT',
+          headers: authHeader,
+        });
+        if (!res.ok) erros.push(`Orientador: erro ${res.status}`);
+        else setFamilia(f => ({ ...f, orientador: orientadores.find(o => String(o.id) === gestao.orientadorId)?.nome || f.orientador }));
+      } catch { erros.push('Orientador: falha de rede'); }
+    }
+
+    if (erros.length === 0) {
+      setGestaoMsg('Salvo!');
+      setTimeout(() => setGestaoMsg(''), 2500);
+    } else {
+      setGestaoMsg(erros.join(' · '));
+    }
+    setSavingGestao(false);
+  };
 
   const addFiles = files => {
     const next = Array.from(files).map(f => ({
@@ -429,7 +497,7 @@ const DetalhesFamilia = () => {
         <span className="bc-current">{familia.responsavel}</span>
       </div>
 
-      {/* CABEÇALHO DA FAMÍLIA */}
+      {/* CABEÇALHO + GESTÃO */}
       <div className="det-header-card">
         <div className="det-header-left">
           <div className="det-avatar" style={{ background: avatarBg }}>
@@ -439,17 +507,67 @@ const DetalhesFamilia = () => {
             <h1 className="det-nome">{familia.responsavel}</h1>
             <p className="det-sub">
               {familia.regiao}
-              {familia.membros ? ` · ${familia.membros} membros` : ''}
-              {familia.tel && familia.tel !== '—' ? ` · ${familia.tel}` : ''}
+              {familia.membros ? ` · ${familia.membros} membros` : ''}
+              {familia.tel && familia.tel !== '—' ? ` · ${familia.tel}` : ''}
             </p>
-            {familia.tecnico && familia.tecnico !== '—' && (
-              <p className="det-sub">Técnico responsável: <strong>{familia.tecnico}</strong></p>
+            <span className="status-chip" style={{ background: statusInfo.bg, color: statusInfo.color, marginTop: 6, display: 'inline-flex' }}>
+              {statusInfo.label}
+            </span>
+          </div>
+        </div>
+
+        <div className="det-header-divider" />
+
+        <div className="det-header-gestao">
+          <div className="det-gestao-field">
+            <label>Urgência</label>
+            <select
+              value={gestao.urgencia}
+              onChange={e => setGestao(g => ({ ...g, urgencia: e.target.value }))}
+              className="det-gestao-select"
+            >
+              <option value="">Normal</option>
+              <option value="ATENCAO">Atenção</option>
+              <option value="URGENCIA">Urgente</option>
+            </select>
+          </div>
+          <div className="det-gestao-field">
+            <label>Técnico</label>
+            <select
+              value={gestao.tecnicoId}
+              onChange={e => setGestao(g => ({ ...g, tecnicoId: e.target.value }))}
+              className="det-gestao-select"
+            >
+              <option value="">Selecionar técnico</option>
+              {tecnicos.map(t => (
+                <option key={t.id} value={String(t.id)}>{t.nome}</option>
+              ))}
+            </select>
+          </div>
+          <div className="det-gestao-field">
+            <label>Orientador</label>
+            <select
+              value={gestao.orientadorId}
+              onChange={e => setGestao(g => ({ ...g, orientadorId: e.target.value }))}
+              className="det-gestao-select"
+            >
+              <option value="">Selecionar orientador</option>
+              {orientadores.map(o => (
+                <option key={o.id} value={String(o.id)}>{o.nome}</option>
+              ))}
+            </select>
+          </div>
+          <div className="det-gestao-save">
+            <button className="btn-primary btn-success" onClick={handleSaveGestao} disabled={savingGestao}>
+              {savingGestao ? 'Salvando…' : 'Salvar'}
+            </button>
+            {gestaoMsg && (
+              <span style={{ fontSize: 13, color: gestaoMsg.includes('Erro') ? '#dc2626' : '#16a34a' }}>
+                {gestaoMsg}
+              </span>
             )}
           </div>
         </div>
-        <span className="status-chip" style={{ background: statusInfo.bg, color: statusInfo.color }}>
-          {statusInfo.label}
-        </span>
       </div>
 
       {/* TÍTULO DA SEÇÃO */}
@@ -499,7 +617,7 @@ const DetalhesFamilia = () => {
               <div>
                 <h2 className="lista-doc-title">Documentos Anexados</h2>
                 <p className="lista-doc-sub">
-                  {familia?.responsavel}&ensp;·&ensp;{uploadedFiles.length} arquivo{uploadedFiles.length !== 1 ? 's' : ''}
+                  {familia?.responsavel}&ensp;&middot;&ensp;{uploadedFiles.length} arquivo{uploadedFiles.length !== 1 ? 's' : ''}
                 </p>
               </div>
               <button
@@ -538,7 +656,7 @@ const DetalhesFamilia = () => {
                 <line x1="12" y1="3" x2="12" y2="15" stroke="#0369a1" strokeWidth="1.8" strokeLinecap="round"/>
               </svg>
               <p className="det-upload-title">Arraste arquivos aqui ou clique para selecionar</p>
-              <p className="det-upload-hint">PDF, PNG, JPG, DOC, XLS — até 10 MB cada</p>
+              <p className="det-upload-hint">PDF, PNG, JPG, DOC, XLS &mdash; até 10 MB cada</p>
             </div>
 
             {/* LISTA DE ARQUIVOS */}
@@ -618,7 +736,7 @@ const DetalhesFamilia = () => {
             <div>
               <h2 className="lista-doc-title">{opcaoAtiva.listTitle}</h2>
               <p className="lista-doc-sub">
-                {familia?.responsavel}&ensp;·&ensp;{itens.length} {itens.length === 1 ? 'registro' : 'registros'}
+                {familia?.responsavel}&ensp;&middot;&ensp;{itens.length} {itens.length === 1 ? 'registro' : 'registros'}
               </p>
             </div>
             <button
