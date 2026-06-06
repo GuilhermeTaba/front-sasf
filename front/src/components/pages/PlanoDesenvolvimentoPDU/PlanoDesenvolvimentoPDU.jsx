@@ -161,7 +161,7 @@ const PlanoDesenvolvimentoPDU = () => {
         }),
       });
       if (!res.ok) throw new Error(`Erro ${res.status}`);
-      navigate(`/detalhes-familia/${id}`);
+      navigate(`/detalhes-familia/${id}`, { state: { tab: 'planoPDU' } });
     } catch (e) {
       setError(e.message);
     } finally {

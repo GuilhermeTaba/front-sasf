@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router';
+import { useParams, useNavigate, useLocation, Link } from 'react-router';
 import Layout from '../../Layout';
 import './DetalhesFamilia.css';
 import '../lista-docs.css';
@@ -18,17 +18,6 @@ const STATUS_MAP = {
   urgente: { label: 'Urgente', bg: '#fee2e2', color: '#991b1b' },
 };
 
-const STATUS_FICHA = {
-  completo: { bg: '#dcfce7', color: '#166534', label: 'Completo' },
-  rascunho: { bg: '#fef3c7', color: '#92400e', label: 'Rascunho' },
-  assinado: { bg: '#dcfce7', color: '#166534', label: 'Assinado' },
-};
-
-const STATUS_ATENDIMENTO = {
-  concluido: { bg: '#dcfce7', color: '#166534', label: 'Concluído' },
-  andamento: { bg: '#dbeafe', color: '#1d4ed8', label: 'Em andamento' },
-  pendente:  { bg: '#fef3c7', color: '#92400e', label: 'Pendente' },
-};
 
 const fmtSize = b => b < 1048576 ? `${(b/1024).toFixed(1)} KB` : `${(b/1048576).toFixed(1)} MB`;
 
@@ -60,7 +49,8 @@ const UserIcon = () => (
 const DetalhesFamilia = () => {
   const { id }       = useParams();
   const navigate     = useNavigate();
-  const [selected, setSelected] = useState('cadastral');
+  const location     = useLocation();
+  const [selected, setSelected] = useState(location.state?.tab || 'cadastral');
 
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [dragOver, setDragOver]           = useState(false);
@@ -108,7 +98,6 @@ const DetalhesFamilia = () => {
             id: data.id ?? i + 1,
             data: toDateBR(data.dataMatricula) || toDateBR(data.data) || '—',
             tecnico: data.tecnicoNome || '—',
-            status: 'completo',
           })),
         }));
       })
@@ -126,7 +115,22 @@ const DetalhesFamilia = () => {
             data: data.data ? new Date(data.data).toLocaleDateString('pt-BR') : '—',
             tecnico: data.nomeOrientador || '—',
             tipo: data.tipoAtendimento || '',
-            status: 'concluido',
+          })),
+        }));
+      })
+      .catch(() => {});
+
+    fetch(`${API_URL}/familias/${id}/atualizacoes`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(list => {
+        const items = Array.isArray(list) ? list : (list ? [list] : []);
+        if (!items.length) return;
+        setListas(prev => ({
+          ...prev,
+          atualizacao: items.map(data => ({
+            id:      data.id,
+            data:    data.dt || '—',
+            tecnico: data.tecnicoNome || '—',
           })),
         }));
       })
@@ -143,7 +147,22 @@ const DetalhesFamilia = () => {
             id: data.id ?? i + 1,
             data: toDateBR(data.dataPreenchimento) || '—',
             tecnico: data.tecnicoNome || '—',
-            status: 'completo',
+          })),
+        }));
+      })
+      .catch(() => {});
+
+    fetch(`${API_URL}/familias/${id}/termos-autorizacao`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(list => {
+        const items = Array.isArray(list) ? list : (list ? [list] : []);
+        if (!items.length) return;
+        setListas(prev => ({
+          ...prev,
+          termo: items.map(data => ({
+            id:      data.id,
+            data:    data.data ? toDateBR(data.data) : '—',
+            tecnico: data.nome || '—',
           })),
         }));
       })
@@ -178,7 +197,6 @@ const DetalhesFamilia = () => {
       novaLabel:    'Novo Atendimento',
       novaPath:     `/novo-atendimento/${id}`,
       itemPath:     (item) => `/novo-atendimento/${id}/${item.id}`,
-      statusMap:    STATUS_ATENDIMENTO,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
@@ -198,7 +216,6 @@ const DetalhesFamilia = () => {
       novaLabel:    'Nova Ficha Cadastral',
       novaPath:     `/novo-cadastro/${id}`,
       itemPath:     (item) => `/novo-cadastro/${id}/${item.id}`,
-      statusMap:    STATUS_FICHA,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
@@ -220,7 +237,7 @@ const DetalhesFamilia = () => {
       itemLabel:    'Ficha de Atualização',
       novaLabel:    'Nova Ficha de Atualização',
       novaPath:     `/ficha-atualizacao/${id}`,
-      statusMap:    STATUS_FICHA,
+      itemPath:     (item) => `/ficha-atualizacao/${id}/${item.id}`,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="23 4 23 10 17 10"/>
@@ -239,7 +256,7 @@ const DetalhesFamilia = () => {
       itemLabel:    'Termo de Imagem',
       novaLabel:    'Novo Termo',
       novaPath:     `/termo-imagem/${id}`,
-      statusMap:    STATUS_FICHA,
+      itemPath:     (item) => `/termo-imagem/${id}/${item.id}`,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -259,7 +276,6 @@ const DetalhesFamilia = () => {
       novaLabel:    'Nova Visita Domiciliar',
       novaPath:     `/ficha-visita/${id}`,
       itemPath:     (item) => `/ficha-visita/${id}/${item.id}`,
-      statusMap:    STATUS_FICHA,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H14v-5h-4v5H4a1 1 0 01-1-1V9.5z"/>
@@ -276,7 +292,6 @@ const DetalhesFamilia = () => {
       itemLabel:    'Plano de Desenvolvimento',
       novaLabel:    'Novo Plano de Desenvolvimento',
       novaPath:     `/plano-desenvolvimento/${id}`,
-      statusMap:    STATUS_FICHA,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
@@ -297,7 +312,6 @@ const DetalhesFamilia = () => {
       itemLabel:    'PDU',
       novaLabel:    'Novo PDU',
       novaPath:     `/plano-pdu/${id}`,
-      statusMap:    STATUS_FICHA,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
@@ -317,7 +331,6 @@ const DetalhesFamilia = () => {
       itemLabel:    'Folha de Prosseguimento',
       novaLabel:    'Nova Folha de Prosseguimento',
       novaPath:     `/folha-prosseguimento/${id}`,
-      statusMap:    STATUS_FICHA,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
@@ -575,46 +588,60 @@ const DetalhesFamilia = () => {
             {itens.length === 0 ? (
               <div className="lista-doc-empty">Nenhum registro encontrado.</div>
             ) : (
-              itens.map((item, i) => {
-                const st = opcaoAtiva.statusMap[item.status];
-                return (
-                  <div
-                    key={item.id}
-                    className="lista-doc-item"
-                    onClick={() => navigate(opcaoAtiva.itemPath ? opcaoAtiva.itemPath(item) : opcaoAtiva.novaPath)}
-                  >
-                    <div className="lista-doc-item-icon" style={{ background: opcaoAtiva.bg, color: opcaoAtiva.color }}>
-                      {opcaoAtiva.icon}
-                    </div>
-                    <div className="lista-doc-item-info">
-                      <div className="lista-doc-item-titulo">
-                        {item.tipo
-                          ? `${opcaoAtiva.itemLabel} #${String(i + 1).padStart(2, '0')} — ${item.tipo}`
-                          : `${opcaoAtiva.itemLabel} #${String(i + 1).padStart(2, '0')} — ${familia.responsavel}`
-                        }
-                      </div>
-                      <div className="lista-doc-item-meta">
-                        <span><CalIcon /> {item.data}</span>
-                        <span><UserIcon /> {item.tecnico}</span>
-                      </div>
-                    </div>
-                    <span className="lista-doc-status" style={{ background: st.bg, color: st.color }}>
-                      {st.label}
-                    </span>
-                    <button
-                      className="lista-doc-ver-btn"
-                      style={{ borderColor: opcaoAtiva.border, color: opcaoAtiva.color }}
-                      onClick={e => { e.stopPropagation(); navigate(opcaoAtiva.itemPath ? opcaoAtiva.itemPath(item) : opcaoAtiva.novaPath); }}
-                    >
-                      <span className="lista-doc-ver-label">Visualizar</span>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
-                      </svg>
-                    </button>
+              itens.map((item, i) => (
+                <div
+                  key={item.id}
+                  className="lista-doc-item"
+                  onClick={() => navigate(opcaoAtiva.itemPath ? opcaoAtiva.itemPath(item) : opcaoAtiva.novaPath)}
+                >
+                  <div className="lista-doc-num-badge" style={{ background: opcaoAtiva.bg, color: opcaoAtiva.color, borderColor: opcaoAtiva.border }}>
+                    #{String(i + 1).padStart(2, '0')}
                   </div>
-                );
-              })
+                  <div className="lista-doc-item-info">
+                    <div className="lista-doc-item-titulo">{opcaoAtiva.itemLabel}</div>
+                    {item.data && item.data !== '—' && (
+                      <div className="lista-doc-item-date"><CalIcon /> {item.data}</div>
+                    )}
+                  </div>
+
+                  {(selected === 'cadastral' || selected === 'termo' || selected === 'visita') && (() => {
+                    const pdfUrl = selected === 'cadastral'
+                      ? `${API_URL}/familias/${id}/cadastro/${item.id}/pdf`
+                      : selected === 'visita'
+                        ? `${API_URL}/familias/${id}/visitas/${item.id}/pdf`
+                        : `${API_URL}/familias/${id}/termos-autorizacao/${item.id}/pdf`;
+                    return (
+                      <a
+                        href={pdfUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="lista-doc-ver-btn"
+                        style={{ borderColor: opcaoAtiva.border, color: '#dc2626' }}
+                        onClick={e => e.stopPropagation()}
+                      >
+                        <span className="lista-doc-ver-label">PDF</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                          <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                      </a>
+                    );
+                  })()}
+
+                  <button
+                    className="lista-doc-ver-btn"
+                    style={{ borderColor: opcaoAtiva.border, color: opcaoAtiva.color }}
+                    onClick={e => { e.stopPropagation(); navigate(opcaoAtiva.itemPath ? opcaoAtiva.itemPath(item) : opcaoAtiva.novaPath); }}
+                  >
+                    <span className="lista-doc-ver-label">Visualizar</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                  </button>
+                </div>
+              ))
             )}
           </div>
         </>

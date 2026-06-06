@@ -206,7 +206,7 @@ const NovoAtendimento = () => {
         } catch { /* body não é JSON */ }
         throw new Error(msg);
       }
-      navigate(fid ? `/detalhes-familia/${fid}` : '/atendimentos');
+      navigate(fid ? `/detalhes-familia/${fid}` : '/atendimentos', { state: { tab: 'atendimentos' } });
     } catch (e) {
       console.error('[NovoAtendimento] catch:', e.message);
       setSaveError(e.message);

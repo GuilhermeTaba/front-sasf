@@ -490,7 +490,7 @@ const NovosCadastro = () => {
         } catch { /* body não é JSON */ }
         throw new Error(msg);
       }
-      navigate(familia ? `/detalhes-familia/${familia.id}` : '/familias');
+      navigate(familia ? `/detalhes-familia/${familia.id}` : '/familias', { state: { tab: 'cadastral' } });
     } catch (e) {
       setSaveError(e.message);
     } finally {

@@ -44,7 +44,9 @@ createRoot(document.getElementById('root')).render(
         <Route path="/painel-admin"          element={<AdminRoute element={<PainelAdmin />} />} />
         <Route path="/detalhes-familia/:id"   element={<DetalhesFamilia />} />
         <Route path="/ficha-atualizacao/:id"                      element={<FichaAtualizacao />} />
+        <Route path="/ficha-atualizacao/:id/:fichaId"            element={<FichaAtualizacao />} />
         <Route path="/termo-imagem/:id"                            element={<TermoImagem />} />
+        <Route path="/termo-imagem/:id/:termoId"                  element={<TermoImagem />} />
 
         <Route path="/ficha-visita/:id"                            element={<FichaVisitaDomiciliar />} />
         <Route path="/ficha-visita/:id/:fichaId"                  element={<FichaVisitaDomiciliar />} />

@@ -126,6 +126,32 @@
   gap: 5px;
 }
 
+/* número do formulário */
+.lista-doc-num-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  border: 1.5px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* data no item */
+.lista-doc-item-date {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
 /* status badge */
 .lista-doc-status {
   display: inline-flex;

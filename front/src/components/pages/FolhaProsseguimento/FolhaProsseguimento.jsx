@@ -63,7 +63,7 @@ const FolhaProsseguimento = () => {
         }),
       });
       if (!res.ok) throw new Error(`Erro ${res.status}`);
-      navigate(`/detalhes-familia/${id}`);
+      navigate(`/detalhes-familia/${id}`, { state: { tab: 'folhaProsseguimento' } });
     } catch (e) {
       setError(e.message);
     } finally {

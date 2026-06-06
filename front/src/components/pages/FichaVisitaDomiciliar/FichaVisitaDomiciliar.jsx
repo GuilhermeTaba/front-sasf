@@ -26,28 +26,28 @@ const toDateBR = (iso) => {
   return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
 };
 
+const emptyForm = () => ({
+  servico:          'SASF Chico Mendes',
+  cras:             '',
+  tecnicoId:        '',
+  data:             '',
+  nome:             '',
+  nis:              '',
+  endereco:         '',
+  objetivo:         '',
+  pessoasPresentes: '',
+  demandas:         '',
+});
+
 const FichaVisitaDomiciliar = () => {
-  const { id, fichaId: fichaIdParam } = useParams();
+  const { id, fichaId } = useParams();
   const navigate = useNavigate();
 
-  const [familia, setFamilia] = useState(null);
-  const [fichaId, setFichaId] = useState(null);
-  const [saving, setSaving]   = useState(false);
-  const [error, setError]     = useState('');
+  const [familia,  setFamilia]  = useState(null);
   const [tecnicos, setTecnicos] = useState([]);
-
-  const [form, setForm] = useState({
-    servico: 'SASF Chico Mendes',
-    cras: '',
-    tecnicoId: '',
-    data: '',
-    nome: '',
-    nis: '',
-    endereco: '',
-    objetivo: '',
-    pessoasPresentes: '',
-    demandas: '',
-  });
+  const [form,     setForm]     = useState(emptyForm());
+  const [saving,   setSaving]   = useState(false);
+  const [error,    setError]    = useState('');
 
   useEffect(() => {
     if (!id) return;
@@ -62,39 +62,36 @@ const FichaVisitaDomiciliar = () => {
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (!data) return;
-        setFamilia({
-          id: data.id,
-          responsavel: data.nomeRepresentante || data.nomeRepresentanteFamilia || '',
-        });
-        setForm(f => ({
-          ...f,
-          nome: data.nomeRepresentante || data.nomeRepresentanteFamilia || f.nome,
-        }));
+        const responsavel = data.nomeRepresentante || data.nomeRepresentanteFamilia || '';
+        setFamilia({ id: data.id, responsavel });
+        if (!fichaId) setForm(f => ({ ...f, nome: responsavel }));
       })
       .catch(() => {});
 
-    if (fichaIdParam) {
-      fetch(`${API_URL}/familias/${id}/visitas/${fichaIdParam}`, { headers })
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (!data) return;
-          setFichaId(data.id ?? null);
-          setForm({
-            servico:          data.nomeServicoSASF || 'SASF Chico Mendes',
-            cras:             data.cras || '',
-            tecnicoId:        data.tecnicoId ? String(data.tecnicoId) : '',
-            data:             toDateBR(data.dataPreenchimento),
-            nome:             data.nomeRepresentanteFamilia || '',
-            nis:              data.numeroNIS_NIT_NB || '',
-            endereco:         data.endereco || '',
-            objetivo:         data.objetivoVisita || '',
-            pessoasPresentes: data.pessoasEntrevistadas || '',
-            demandas:         data.conteudoFolha || '',
-          });
-        })
-        .catch(() => {});
+    if (!fichaId) {
+      setForm(emptyForm());
+      return;
     }
-  }, [id, fichaIdParam]);
+
+    fetch(`${API_URL}/familias/${id}/visitas/${fichaId}`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        setForm({
+          servico:          data.nomeServicoSASF       || 'SASF Chico Mendes',
+          cras:             data.cras                  || '',
+          tecnicoId:        data.tecnicoId ? String(data.tecnicoId) : '',
+          data:             toDateBR(data.dataPreenchimento),
+          nome:             data.nomeRepresentanteFamilia || '',
+          nis:              data.numeroNIS_NIT_NB       || '',
+          endereco:         data.endereco               || '',
+          objetivo:         data.objetivoVisita         || '',
+          pessoasPresentes: data.pessoasEntrevistadas   || '',
+          demandas:         data.conteudoFolha          || '',
+        });
+      })
+      .catch(() => {});
+  }, [id, fichaId]);
 
   const maskDate = v => {
     const d = v.replace(/\D/g, '').slice(0, 8);
@@ -111,11 +108,9 @@ const FichaVisitaDomiciliar = () => {
   const handleSubmit = async () => {
     setSaving(true);
     setError('');
-    const base = API_URL;
-    const isEdit = !!fichaId;
-    const url    = isEdit
-      ? `${base}/familias/${id}/visitas/${fichaId}`
-      : `${base}/familias/${id}/visitas`;
+    const endpoint = fichaId
+      ? `${API_URL}/familias/${id}/visitas/${fichaId}`
+      : `${API_URL}/familias/${id}/visitas`;
     const payload = {
       nomeServicoSASF:          form.servico,
       cras:                     form.cras,
@@ -128,29 +123,17 @@ const FichaVisitaDomiciliar = () => {
       pessoasEntrevistadas:     form.pessoasPresentes,
       conteudoFolha:            form.demandas,
     };
-    console.log('[FichaVisitaDomiciliar] POST/PUT payload:', payload);
     try {
-      const res = await fetch(url, {
-        method: isEdit ? 'PUT' : 'POST',
+      const res = await fetch(endpoint, {
+        method: fichaId ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify({
-          nomeServicoSASF:          form.servico,
-          cras:                     form.cras,
-          tecnicoId:                Number(form.tecnicoId) || null,
-          dataPreenchimento:        parseDateBR(form.data),
-          nomeRepresentanteFamilia: form.nome,
-          numeroNIS_NIT_NB:         form.nis,
-          endereco:                 form.endereco,
-          objetivoVisita:           form.objetivo,
-          pessoasEntrevistadas:     form.pessoasPresentes,
-          conteudoFolha:            form.demandas,
-        }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(`Erro ${res.status}`);
-      navigate(`/detalhes-familia/${id}`);
+      navigate(`/detalhes-familia/${id}`, { state: { tab: 'visita' } });
     } catch (e) {
       setError(e.message);
     } finally {
@@ -158,14 +141,12 @@ const FichaVisitaDomiciliar = () => {
     }
   };
 
-  const backPath = `/detalhes-familia/${id}`;
-
   return (
     <Layout>
       <div className="breadcrumb">
         <Link to="/familias" className="bc-link">Famílias</Link>
         <span className="bc-sep">›</span>
-        <Link to={backPath} className="bc-link">{familia?.responsavel || '...'}</Link>
+        <Link to={`/detalhes-familia/${id}`} className="bc-link">{familia?.responsavel || '...'}</Link>
         <span className="bc-sep">›</span>
         <span className="bc-current">Ficha de Visita Domiciliar</span>
       </div>
@@ -218,7 +199,8 @@ const FichaVisitaDomiciliar = () => {
         </div>
         <div className="fa-field" style={{ marginTop: 14 }}>
           <label>Endereço</label>
-          <input name="endereco" value={form.endereco} onChange={handle} placeholder="Rua, número, complemento" className="fa-input" />
+          <input name="endereco" value={form.endereco} onChange={handle}
+            placeholder="Rua, número, complemento" className="fa-input" />
         </div>
 
         <SectionTitle>Objetivo da Visita</SectionTitle>
@@ -244,7 +226,7 @@ const FichaVisitaDomiciliar = () => {
 
         {error && <p style={{ color: '#dc2626', margin: '8px 0' }}>{error}</p>}
         <div className="form-actions">
-          <Link to={backPath} className="btn-secondary">← Voltar</Link>
+          <Link to={`/detalhes-familia/${id}`} className="btn-secondary">← Voltar</Link>
 
           <button className="btn-primary btn-success" onClick={handleSubmit} disabled={saving}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"

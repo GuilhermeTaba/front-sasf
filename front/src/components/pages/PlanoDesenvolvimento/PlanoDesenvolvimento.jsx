@@ -138,7 +138,7 @@ const PlanoDesenvolvimento = () => {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(`Erro ${res.status}`);
-      navigate(`/detalhes-familia/${id}`);
+      navigate(`/detalhes-familia/${id}`, { state: { tab: 'planoDesenvolvimento' } });
     } catch (e) {
       setError(e.message);
     } finally {

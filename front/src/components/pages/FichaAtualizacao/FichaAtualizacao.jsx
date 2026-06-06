@@ -5,7 +5,8 @@ import './FichaAtualizacao.css';
 
 
 const emptyMembro = () => ({
-  nome: '', escola: '', serie: '', nascimento: '', sexo: '',
+  nome: '', escola: '', serie: '', nascimento: '',
+  m: false, t: false, n: false,
 });
 
 const SectionTitle = ({ children }) => (
@@ -24,19 +25,13 @@ const parseDateBR = (str) => {
   return null;
 };
 
-const MESES_NUM_AT = {
-  'Janeiro': 1, 'Fevereiro': 2, 'Março': 3, 'Abril': 4,
-  'Maio': 5, 'Junho': 6, 'Julho': 7, 'Agosto': 8,
-  'Setembro': 9, 'Outubro': 10, 'Novembro': 11, 'Dezembro': 12,
-};
 
 const FichaAtualizacao = () => {
-  const { id } = useParams();
+  const { id, fichaId } = useParams();
   const navigate = useNavigate();
   const [familia, setFamilia] = useState(null);
 
   const [form, setForm] = useState({
-    rf:          '',
     nascResp:    '',
     nis:         '',
     cpf:         '',
@@ -63,11 +58,6 @@ const FichaAtualizacao = () => {
     tipoProntuario: '',
     dt:            '',
     tecnicoId:     '',
-    local:         'São Paulo',
-    dia:           '',
-    mes:           '',
-    ano:           new Date().getFullYear().toString(),
-    orientador:    '',
     responsavel:   '',
   });
 
@@ -78,20 +68,105 @@ const FichaAtualizacao = () => {
 
   useEffect(() => {
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+
     fetch(`${API_URL}/tecnicos`, { headers })
       .then(r => r.ok ? r.json() : [])
       .then(data => setTecnicos(Array.isArray(data) ? data : []))
       .catch(() => {});
-    if (id) {
-      fetch(`${API_URL}/familias/${id}`, { headers })
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (!data) return;
-          setFamilia({ id: data.id, responsavel: data.nomeRepresentante || data.nomeRepresentanteFamilia || '' });
-        })
-        .catch(() => {});
-    }
-  }, [id]);
+
+    if (!id) return;
+
+    fetch(`${API_URL}/familias/${id}`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        setFamilia({ id: data.id, responsavel: data.nomeRepresentante || data.nomeRepresentanteFamilia || '' });
+      })
+      .catch(() => {});
+
+    if (!fichaId) return;
+
+    // Modo edição: busca ficha existente e pré-preenche
+    fetch(`${API_URL}/familias/${id}/atualizacoes/${fichaId}`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        const toDateBR = iso => {
+          if (!iso) return '';
+          const p = iso.split('-');
+          return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
+        };
+        const str = v => (v != null ? String(v) : '');
+        setForm(f => ({
+          ...f,
+          matricula:          data.numeroMatricula || '',
+          nascResp:           toDateBR(data.dataNascimento),
+          nis:                data.nis || '',
+          cpf:                data.cpf || '',
+          fx0a5:              str(data.zeroACinco),
+          fx6a14:             str(data.seisAQuatorze),
+          fx15a17:            str(data.quinzeADezessete),
+          fx18a29:            str(data.dezoitoAVinteENove),
+          fx30a59:            str(data.trintaACinquentaENove),
+          fx60m:              str(data.sessentaMais),
+          nPcd:               str(data.pcd),
+          bpcIdoso:           str(data.bpcIdoso),
+          bpcPcd:             str(data.bpcPcd),
+          bolsaFamilia:       str(data.bolsaFamilia),
+          condicionalidades:  data.condicionalidades || '',
+          statusBenef:        data.status || '',
+          agCei0a5:           str(data.aguardandoVagaEmei),
+          freCei:             str(data.frequentaCei),
+          freEmei:            str(data.frequentaEmei),
+          fora6a17:           str(data.foraEscola),
+          agVaga6a17:         str(data.aguardandoVagaEscola),
+          ensFund:            str(data.ensinoFundamental),
+          ensMedio:           str(data.ensinoMedio),
+          ejaOuSimilar:       str(data.eja),
+          pcdEspecial:        str(data.pcdEscola),
+          cursoSup:           str(data.cursoSuperior),
+          cca:                str(data.cca),
+          ci:                 str(data.cj),
+          cedesp:             str(data.cedesp),
+          nci:                str(data.nci),
+          naispd:             str(data.naispd),
+          vacinados:          str(data.vacinaAtualizada),
+          gestantes:          str(data.mulheresGestantes),
+          gestantesPreNatal:  str(data.gestantesPreNatal),
+          sitRua:             str(data.situacaoRua),
+          trabInfantil:       str(data.trabalhoInfantil),
+          alcoolDrogas:       str(data.dependencia),
+          adolMSEAberto:      str(data.adolescenteMse),
+          adolMSEInternacao:  str(data.adolescenteInternacao),
+          adultoPrivLiberdade: str(data.adultoPrivado),
+          criancaSaica:       str(data.criancasSaica),
+          idosoAcolhimento:   str(data.idosoAcolhimento),
+          observacoes:        data.observacoes || '',
+          tipoProntuario:     data.pdf ? 'PDF' : data.pdu ? 'PDU' : '',
+          dt:                 data.dt || '',
+          tecnicoId:          data.tecnicoId ? String(data.tecnicoId) : '',
+          responsavel:        data.responsavel || '',
+        }));
+        if (data.membrosAtualizados?.length) {
+          setMembros(prev => {
+            const next = [...prev];
+            data.membrosAtualizados.forEach((m, i) => {
+              if (i < next.length) next[i] = {
+                nome:       m.nome || '',
+                escola:     m.escola || '',
+                serie:      m.serie != null ? String(m.serie) : '',
+                nascimento: toDateBR(m.dataNascimento),
+                m:          m.m  || false,
+                t:          m.t  || false,
+                n:          m.n  || false,
+              };
+            });
+            return next;
+          });
+        }
+      })
+      .catch(() => {});
+  }, [id, fichaId]);
 
   const maskDate = v => {
     const d = v.replace(/\D/g, '').slice(0, 8);
@@ -108,7 +183,9 @@ const FichaAtualizacao = () => {
   };
 
   const handleMembro = (idx, field, value) =>
-    setMembros(m => m.map((mb, i) => i === idx ? { ...mb, [field]: value } : mb));
+    setMembros(prev => prev.map((mb, i) =>
+      i === idx ? { ...mb, [field]: value } : mb
+    ));
 
   const handleSubmit = async () => {
     setSaving(true);
@@ -120,14 +197,15 @@ const FichaAtualizacao = () => {
         dataNascimento: parseDateBR(m.nascimento),
         escola: m.escola,
         serie: m.serie ? parseInt(m.serie) : null,
-        m: m.sexo === 'M',
-        t: m.sexo === 'T',
-        n: m.sexo === 'N',
+        m: m.m,
+        t: m.t,
+        n: m.n,
       }));
     const num = (v) => v !== '' ? Number(v) : null;
     const payload = {
       numeroMatricula: form.matricula,
       nomeRepresentanteFamilia: familia?.responsavel || '',
+      nomeSocialRepresentante: null,
       nis: form.nis,
       cpf: form.cpf,
       dataNascimento: parseDateBR(form.nascResp),
@@ -177,18 +255,26 @@ const FichaAtualizacao = () => {
       tecnicoId: Number(form.tecnicoId) || null,
       responsavel: form.responsavel,
     };
-    console.log('[FichaAtualizacao] POST payload:', payload);
+    const endpoint = fichaId
+      ? `${API_URL}/familias/${id}/atualizacoes/${fichaId}`
+      : `${API_URL}/familias/${id}/atualizacoes`;
+    const method = fichaId ? 'PUT' : 'POST';
+    console.log(`[FichaAtualizacao] ${method}`, endpoint, payload);
     try {
-      const res = await fetch(`${API_URL}/familias/${id}/atualizacoes`, {
-        method: 'POST',
+      const res = await fetch(endpoint, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error(`Erro ${res.status}`);
-      navigate(`/detalhes-familia/${id}`);
+      if (!res.ok) {
+        let msg = `Erro ${res.status}`;
+        try { const b = await res.json(); msg = b.message || b.error || JSON.stringify(b); } catch {}
+        throw new Error(msg);
+      }
+      navigate(`/detalhes-familia/${id}`, { state: { tab: 'atualizacao' } });
     } catch (e) {
       setError(e.message);
     } finally {
@@ -234,10 +320,6 @@ const FichaAtualizacao = () => {
         <SectionTitle>Identificação da Família</SectionTitle>
         <div className="fa-grid-4">
           <div className="fa-field">
-            <label>RF</label>
-            <input name="rf" value={form.rf} onChange={handle} placeholder="Nº RF" className="fa-input" />
-          </div>
-          <div className="fa-field">
             <label>Data de Nasc. do Responsável</label>
             <input name="nascResp" value={form.nascResp} onChange={handle} placeholder="dd/mm/aaaa" className="fa-input" />
           </div>
@@ -268,45 +350,41 @@ const FichaAtualizacao = () => {
                 <th>Escola</th>
                 <th>Série</th>
                 <th>Data de Nasc.</th>
-                <th>Sexo</th>
+                <th style={{ textAlign: 'center' }}>M</th>
+                <th style={{ textAlign: 'center' }}>T</th>
+                <th style={{ textAlign: 'center' }}>N</th>
               </tr>
             </thead>
             <tbody>
-              {membros.map((m, i) => (
+              {membros.map((mb, i) => (
                 <tr key={i} className={i % 2 === 0 ? 'fa-tr-even' : 'fa-tr-odd'}>
                   <td className="fa-td-num">{i + 1}.</td>
                   <td>
-                    <input className="fa-tbl-input" value={m.nome}
+                    <input className="fa-tbl-input" value={mb.nome}
                       onChange={e => handleMembro(i, 'nome', e.target.value)}
                       placeholder="Nome completo" />
                   </td>
                   <td>
-                    <input className="fa-tbl-input fa-tbl-sm" value={m.escola}
+                    <input className="fa-tbl-input fa-tbl-sm" value={mb.escola}
                       onChange={e => handleMembro(i, 'escola', e.target.value)}
                       placeholder="Nome da escola" />
                   </td>
                   <td>
-                    <input className="fa-tbl-input fa-tbl-xs" value={m.serie}
+                    <input className="fa-tbl-input fa-tbl-xs" value={mb.serie}
                       onChange={e => handleMembro(i, 'serie', e.target.value)}
                       placeholder="Ex: 5º" />
                   </td>
                   <td>
-                    <input className="fa-tbl-input fa-tbl-xs" value={m.nascimento}
+                    <input className="fa-tbl-input fa-tbl-xs" value={mb.nascimento}
                       onChange={e => handleMembro(i, 'nascimento', maskDate(e.target.value))}
                       placeholder="dd/mm/aaaa" />
                   </td>
-                  <td>
-                    <div className="fa-sexo-opts">
-                      {['M','F','T','N'].map(s => (
-                        <label key={s} className={`fa-sexo-opt${m.sexo === s ? ' fa-sexo-opt--on' : ''}`}>
-                          <input type="radio" name={`sexo_${i}`} value={s}
-                            checked={m.sexo === s}
-                            onChange={e => handleMembro(i, 'sexo', e.target.value)} />
-                          {s}
-                        </label>
-                      ))}
-                    </div>
-                  </td>
+                  {['m','t','n'].map(field => (
+                    <td key={field} style={{ textAlign: 'center' }}>
+                      <input type="checkbox" checked={mb[field]}
+                        onChange={e => handleMembro(i, field, e.target.checked)} />
+                    </td>
+                  ))}
                 </tr>
               ))}
             </tbody>
@@ -488,30 +566,9 @@ const FichaAtualizacao = () => {
         </div>
 
         {/* ── ASSINATURAS ── */}
-        <SectionTitle>Data e Assinaturas</SectionTitle>
+        <SectionTitle>Assinatura</SectionTitle>
         <div className="fa-assin-wrap">
-          <div className="fa-data-row">
-            <span>São Paulo,</span>
-            <input name="dia" value={form.dia} onChange={handle} placeholder="dia" className="fa-input fa-input--xs" />
-            <span>de</span>
-            <select name="mes" value={form.mes} onChange={handle} className="fa-input fa-input--mes">
-              <option value="">mês</option>
-              {['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
-                'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'].map(m => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-            <span>de</span>
-            <input name="ano" value={form.ano} onChange={handle} placeholder="ano" className="fa-input fa-input--xs" />
-          </div>
-
           <div className="fa-assin-grid">
-            <div className="fa-assin-col">
-              <input name="orientador" value={form.orientador} onChange={handle}
-                placeholder="Nome do orientador" className="fa-input fa-assin-input" />
-              <div className="fa-assin-line" />
-              <p className="fa-assin-label">Orientador(a)</p>
-            </div>
             <div className="fa-assin-col">
               <input name="responsavel" value={form.responsavel} onChange={handle}
                 placeholder="Nome do responsável" className="fa-input fa-assin-input" />
@@ -531,7 +588,7 @@ const FichaAtualizacao = () => {
               strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            {saving ? 'Salvando…' : 'Salvar ficha de atualização'}
+            {saving ? 'Salvando…' : fichaId ? 'Salvar alterações' : 'Salvar ficha de atualização'}
           </button>
         </div>
 
