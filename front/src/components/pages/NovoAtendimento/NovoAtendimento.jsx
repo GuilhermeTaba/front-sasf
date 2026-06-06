@@ -5,11 +5,6 @@ import './NovoAtendimento.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
-const AI_SIMULATION =
-  'Com base no áudio registrado, o atendimento indica situação de vulnerabilidade ' +
-  'socioeconômica. Recomenda-se encaminhamento ao CRAS para inclusão no Programa ' +
-  'Bolsa Família e verificação de acesso ao benefício de habitação. A família demonstra ' +
-  'interesse em participação nos grupos de fortalecimento de vínculos comunitários.';
 
 const fmt = (s) =>
   `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
@@ -45,14 +40,22 @@ const NovoAtendimento = () => {
   const [saveError, setSaveError] = useState('');
 
   /* ── gravação ── */
-  const [recState, setRecState] = useState('idle');
-  const [audioUrl, setAudioUrl] = useState(null);
-  const [aiText, setAiText]     = useState('');
-  const [recTime, setRecTime]   = useState(0);
+  const [recState, setRecState]       = useState('idle');
+  const [audioUrl, setAudioUrl]       = useState(null);
+  const [audioBlob, setAudioBlob]     = useState(null);
+  const [aiText, setAiText]           = useState('');
+  const [resumoText, setResumoText]   = useState('');
+  const [resumoLoading, setResumoLoading] = useState(false);
+  const [resumoError, setResumoError] = useState('');
+  const [recTime, setRecTime]         = useState(0);
+  const [transcError, setTranscError] = useState('');
 
-  const mediaRef  = useRef(null);
-  const chunksRef = useRef([]);
-  const timerRef  = useRef(null);
+  const mediaRef     = useRef(null);
+  const chunksRef    = useRef([]);
+  const timerRef     = useRef(null);
+  const fileInputRef = useRef(null);
+
+  useEffect(() => () => clearInterval(timerRef.current), []);
 
   useEffect(() => {
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
@@ -103,6 +106,7 @@ const NovoAtendimento = () => {
   }, [familiaId, atendimentoId]);
 
   const startRecording = async () => {
+    clearInterval(timerRef.current);
     try {
       const stream   = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
@@ -110,6 +114,7 @@ const NovoAtendimento = () => {
       recorder.ondataavailable = (e) => chunksRef.current.push(e.data);
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        setAudioBlob(blob);
         setAudioUrl(URL.createObjectURL(blob));
         stream.getTracks().forEach((t) => t.stop());
         setRecState('recorded');
@@ -126,7 +131,21 @@ const NovoAtendimento = () => {
 
   const stopRecording = () => {
     clearInterval(timerRef.current);
+    timerRef.current = null;
     mediaRef.current?.stop();
+  };
+
+  const handleImport = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAudioBlob(file);
+    setAudioUrl(URL.createObjectURL(file));
+    setAiText('');
+    setResumoText('');
+    setResumoError('');
+    setTranscError('');
+    setRecState('recorded');
+    e.target.value = '';
   };
 
   const handleRecord = () => {
@@ -134,21 +153,62 @@ const NovoAtendimento = () => {
       stopRecording();
     } else {
       setAudioUrl(null);
+      setAudioBlob(null);
       setAiText('');
+      setResumoText('');
+      setResumoError('');
+      setTranscError('');
       startRecording();
     }
   };
 
-  const sendToAI = () => {
+  const sendToAI = async () => {
+    if (!audioBlob) return;
     setRecState('processing');
-    setTimeout(() => {
-      setAiText(AI_SIMULATION);
+    setTranscError('');
+    try {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'gravacao.webm');
+      const res = await fetch(`${API_URL}/api/transcricao`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        body: formData,
+      });
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      const texto = await res.text();
+      setAiText(texto);
       setRecState('done');
-    }, 2400);
+    } catch (e) {
+      setTranscError('Falha na transcrição: ' + e.message);
+      setRecState('recorded');
+    }
+  };
+
+  const sendResumo = async () => {
+    setResumoLoading(true);
+    setResumoError('');
+    try {
+      const res = await fetch(`${API_URL}/resumo`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify(aiText),
+      });
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      const dto = await res.json();
+      const texto = dto.response || dto.resumo || dto.texto || dto.conteudo || dto.summary || JSON.stringify(dto);
+      setResumoText(texto);
+    } catch (e) {
+      setResumoError('Falha ao gerar resumo: ' + e.message);
+    } finally {
+      setResumoLoading(false);
+    }
   };
 
   const useAiText = () =>
-    setForm((f) => ({ ...f, observacoes: aiText }));
+    setForm((f) => ({ ...f, observacoes: resumoText || aiText }));
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
 
@@ -328,24 +388,41 @@ const NovoAtendimento = () => {
               <line x1="12" y1="19" x2="12" y2="23"/>
               <line x1="8" y1="23" x2="16" y2="23"/>
             </svg>
-            Registro em áudio
+            Assistente de áudio
           </h2>
-          <p className="na-voice-sub">
-            Grave um relato verbal do atendimento — a IA irá transcrever e sugerir o relatório.
-          </p>
+
+          {/* etapas */}
+          <div className="na-steps">
+            {[
+              { n: 1, label: 'Gravar',      done: recState !== 'idle' },
+              { n: 2, label: 'Transcrever', done: recState === 'done' },
+              { n: 3, label: 'Relatório',   done: !!resumoText },
+            ].map((s, i, arr) => (
+              <div key={s.n} className="na-step-item">
+                <div className={`na-step-dot${s.done ? ' na-step-dot--done' : ''}`}>
+                  {s.done
+                    ? <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l5 5L20 7"/></svg>
+                    : s.n}
+                </div>
+                <span className={`na-step-label${s.done ? ' na-step-label--done' : ''}`}>{s.label}</span>
+                {i < arr.length - 1 && <div className={`na-step-line${s.done ? ' na-step-line--done' : ''}`} />}
+              </div>
+            ))}
+          </div>
 
           <div className="na-rec-area">
             <button
               className={`na-rec-btn${recState === 'recording' ? ' na-rec-btn--on' : ''}`}
               onClick={handleRecord}
+              disabled={recState === 'processing'}
               aria-label={recState === 'recording' ? 'Parar gravação' : 'Iniciar gravação'}
             >
               {recState === 'recording' ? (
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
                   <rect x="5" y="5" width="14" height="14" rx="3"/>
                 </svg>
               ) : (
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
                   <path d="M19 10v2a7 7 0 01-14 0v-2"/>
                   <line x1="12" y1="19" x2="12" y2="23"/>
@@ -363,7 +440,32 @@ const NovoAtendimento = () => {
             )}
 
             {recState === 'idle' && (
-              <p className="na-rec-hint-idle">Clique no microfone para iniciar a gravação</p>
+              <p className="na-rec-hint-idle">Clique no microfone para iniciar</p>
+            )}
+
+            {recState !== 'recording' && (
+              <div className="na-import-row">
+                <span className="na-import-sep">ou</span>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="audio/*"
+                  style={{ display: 'none' }}
+                  onChange={handleImport}
+                />
+                <button
+                  className="na-import-btn"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={recState === 'processing'}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                  Importar áudio
+                </button>
+              </div>
             )}
           </div>
 
@@ -375,7 +477,7 @@ const NovoAtendimento = () => {
                     <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
                     <path d="M19 10v2a7 7 0 01-14 0v-2"/>
                   </svg>
-                  Áudio salvo
+                  Áudio gravado
                 </span>
                 <button className="na-regravar" onClick={handleRecord}>
                   ↺ Regravar
@@ -384,39 +486,68 @@ const NovoAtendimento = () => {
 
               <audio controls src={audioUrl} className="na-player" />
 
+              {transcError && (
+                <p className="na-error-msg">{transcError}</p>
+              )}
+
               {recState === 'recorded' && (
                 <button className="na-ai-btn" onClick={sendToAI}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                    <path d="M2 17l10 5 10-5"/>
-                    <path d="M2 12l10 5 10-5"/>
+                    <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+                    <path d="M19 10v2a7 7 0 01-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="23"/>
+                    <line x1="8" y1="23" x2="16" y2="23"/>
                   </svg>
-                  Enviar para IA
+                  Transcrever
                 </button>
               )}
 
               {recState === 'processing' && (
                 <div className="na-ai-loading">
                   <div className="na-spinner" />
-                  <span>Analisando áudio com IA…</span>
+                  <span>Transcrevendo áudio…</span>
                 </div>
               )}
 
               {recState === 'done' && aiText && (
-                <div className="na-ai-result">
-                  <div className="na-ai-result-title">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                      <path d="M2 17l10 5 10-5"/>
-                      <path d="M2 12l10 5 10-5"/>
-                    </svg>
-                    Análise gerada pela IA
+                <>
+                  <div className="na-transc-block">
+                    <p className="na-transc-label">Transcrição</p>
+                    <p className="na-ai-text">{aiText}</p>
                   </div>
-                  <p className="na-ai-text">{aiText}</p>
-                  <button className="na-use-btn" onClick={useAiText}>
-                    ✓ Usar no relatório
-                  </button>
-                </div>
+
+                  {!resumoText && !resumoLoading && (
+                    <>
+                      {resumoError && <p className="na-error-msg">{resumoError}</p>}
+                      <button className="na-ai-btn na-ai-btn--green" onClick={sendResumo}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                          <rect x="9" y="3" width="6" height="4" rx="1"/>
+                          <line x1="9" y1="12" x2="15" y2="12"/>
+                          <line x1="9" y1="16" x2="13" y2="16"/>
+                        </svg>
+                        Gerar o relatório com IA
+                      </button>
+                    </>
+                  )}
+
+                  {resumoLoading && (
+                    <div className="na-ai-loading na-ai-loading--green">
+                      <div className="na-spinner na-spinner--green" />
+                      <span>Gerando relatório…</span>
+                    </div>
+                  )}
+
+                  {resumoText && (
+                    <div className="na-resumo-block">
+                      <p className="na-resumo-label">Relatório gerado pela IA</p>
+                      <p className="na-ai-text">{resumoText}</p>
+                      <button className="na-use-btn" onClick={useAiText}>
+                        ✓ Usar no relatório
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
