@@ -1,209 +1,200 @@
-import { useNavigate } from 'react-router';
+import { useEffect, useState } from 'react';
 import Layout from '../../Layout';
 import './Dashboard.css';
 
-const barData = [
-  { month: 'Jan', value: 120 },
-  { month: 'Fev', value: 142 },
-  { month: 'Mar', value: 158 },
-  { month: 'Abr', value: 168 },
-  { month: 'Mai', value: 176 },
-  { month: 'Jun', value: 187 },
-];
-const BAR_MAX = 220;
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
-const faixas = [
-  { label: '0-12',  value: 32, color: '#1d4ed8' },
-  { label: '13-17', value: 22, color: '#3b82f6' },
-  { label: '18-29', value: 28, color: '#22c55e' },
-  { label: '30-59', value: 18, color: '#3b82f6' },
-  { label: '60+',   value: 8,  color: '#93c5fd' },
-];
+const buildDonut = (slices, total) => {
+  if (!total) return 'conic-gradient(#e2e8f0 0% 100%)';
+  let cursor = 0;
+  const stops = slices.map(s => {
+    const pct = (s.value / total) * 100;
+    const stop = `${s.color} ${cursor}% ${cursor + pct}%`;
+    cursor += pct;
+    return stop;
+  });
+  return `conic-gradient(${stops.join(', ')})`;
+};
 
-const statCards = [
-  {
-    label: 'Famílias atendidas',
-    value: '248',
-    delta: '↑ +4 este mês',
-    deltaClass: 'green',
-    accent: 'green',
-    iconClass: 'stat-icon--green',
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-      </svg>
-    ),
-  },
-  {
-    label: 'Pessoas cadastradas',
-    value: '1.024',
-    delta: '↑ +22 este mês',
-    deltaClass: 'green',
-    accent: 'green',
-    iconClass: 'stat-icon--green',
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
-      </svg>
-    ),
-  },
-  {
-    label: 'Atendimentos no mês',
-    value: '187',
-    delta: 'meta: 200',
-    deltaClass: 'gray',
-    accent: 'blue',
-    iconClass: 'stat-icon--blue',
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
-        <rect x="9" y="3" width="6" height="4" rx="1"/>
-        <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
-      </svg>
-    ),
-  },
-  {
-    label: 'Documentos pendentes',
-    value: '14',
-    delta: 'requer ação',
-    deltaClass: 'red',
-    accent: 'red',
-    iconClass: 'stat-icon--red',
-    valueClass: 'red',
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-      </svg>
-    ),
-  },
+const FAIXAS_CONFIG = [
+  { key: '0a5Anos',   label: '0-5',   color: '#1d4ed8' },
+  { key: '6a14Anos',  label: '6-14',  color: '#3b82f6' },
+  { key: '15a17Anos', label: '15-17', color: '#22c55e' },
+  { key: '18a29Anos', label: '18-29', color: '#f59e0b' },
+  { key: '30a59Anos', label: '30-59', color: '#8b5cf6' },
+  { key: '60Mais',    label: '60+',   color: '#93c5fd' },
 ];
 
 const Dashboard = () => {
-  const navigate = useNavigate();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    fetch(`${API_URL}/dashboard`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(d => { setData(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const faixaEtaria = data?.faixaEtaria ?? {};
+  const faixaMax = Math.max(...FAIXAS_CONFIG.map(f => faixaEtaria[f.key] ?? 0), 1);
+
+  const beneficiarios = data?.beneficiarios ?? {};
+  const totalBeneficios =
+    (beneficiarios.bpcDeficiente ?? 0) +
+    (beneficiarios.bpcIdoso ?? 0) +
+    (beneficiarios.bolsaFamilia ?? 0);
+
+  const statCards = [
+    {
+      label: 'Famílias atendidas',
+      value: data?.familiasAtendidas,
+      accent: 'green',
+      iconClass: 'stat-icon--green',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Pessoas cadastradas',
+      value: data?.composicaoFamiliar,
+      accent: 'green',
+      iconClass: 'stat-icon--green',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Pessoas c/ deficiência',
+      value: data?.pessoasComDeficiencia,
+      accent: 'blue',
+      iconClass: 'stat-icon--blue',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="7" r="4"/><path d="M6 21v-2a6 6 0 0112 0v2"/>
+          <path d="M18 14l2 4h-4"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Total de beneficiários',
+      value: loading ? null : totalBeneficios,
+      accent: 'blue',
+      iconClass: 'stat-icon--blue',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="7" width="20" height="14" rx="2"/>
+          <path d="M16 7V5a2 2 0 00-4 0v2"/>
+        </svg>
+      ),
+    },
+  ];
+
   return (
-  <Layout>
-    {/* ── HEADER ── */}
-    <div className="dash-header">
-      <div>
-        <p className="page-section">Geral</p>
-        <h1 className="dash-title">Dashboard</h1>
-        <p className="dash-sub">Visão geral da unidade Chico Mendes — junho de 2026</p>
+    <Layout>
+      {/* ── HEADER ── */}
+      <div className="dash-header">
+        <div>
+          <p className="page-section">Geral</p>
+          <h1 className="dash-title">Dashboard</h1>
+          <p className="dash-sub">Visão geral da unidade Chico Mendes</p>
+        </div>
       </div>
-    </div>
 
-    {/* ── STAT CARDS ── */}
-    <div className="stats-grid">
-      {statCards.map((s) => (
-        <div key={s.label} className={`stat-card stat-card--${s.accent}`}>
-          <div className="stat-card-top">
-            <span className="stat-label">{s.label}</span>
-            <div className={`stat-icon ${s.iconClass}`}>{s.icon}</div>
-          </div>
-          <span className={`stat-value${s.valueClass ? ` ${s.valueClass}` : ''}`}>{s.value}</span>
-          <span className={`stat-delta ${s.deltaClass}`}>{s.delta}</span>
-        </div>
-      ))}
-    </div>
-
-    {/* ── CHARTS ROW ── */}
-    <div className="charts-row">
-
-      {/* BAR CHART */}
-      <div className="chart-card chart-bar-card">
-        <div className="chart-head">
-          <div>
-            <h3 className="chart-title">Atendimentos por mês</h3>
-            <p className="chart-sub">últimos 6 meses · 2026</p>
-          </div>
-          <span className="chart-badge">187 total · <span className="green">+12% vs mês anterior</span></span>
-        </div>
-
-        <div className="bar-chart">
-          <div className="bar-y-axis">
-            {[220, 165, 110, 55, 0].map(v => (
-              <span key={v}>{v}</span>
-            ))}
-          </div>
-          <div className="bars-area">
-            <div className="grid-lines">
-              {[0,1,2,3,4].map(i => <div key={i} className="grid-line" />)}
+      {/* ── STAT CARDS ── */}
+      <div className="stats-grid">
+        {statCards.map((s) => (
+          <div key={s.label} className={`stat-card stat-card--${s.accent}`}>
+            <div className="stat-card-top">
+              <span className="stat-label">{s.label}</span>
+              <div className={`stat-icon ${s.iconClass}`}>{s.icon}</div>
             </div>
-            {barData.map((d) => {
-              const heightPct = (d.value / BAR_MAX) * 100;
+            <span className="stat-value">{loading ? '—' : (s.value ?? '—')}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* ── CHARTS ROW ── */}
+      <div className="charts-row">
+
+        {/* FAIXA ETÁRIA — barras horizontais */}
+        <div className="chart-card chart-bar-card">
+          <div className="chart-head">
+            <div>
+              <h3 className="chart-title">Faixa etária</h3>
+              <p className="chart-sub">distribuição das pessoas atendidas</p>
+            </div>
+          </div>
+          <div className="faixa-list" style={{ marginTop: '1rem' }}>
+            {FAIXAS_CONFIG.map(f => {
+              const val = faixaEtaria[f.key] ?? 0;
+              const barWidth = faixaMax > 0 ? (val / faixaMax) * 100 : 0;
               return (
-                <div key={d.month} className="bar-col">
-                  <span className="bar-top-label">{d.value}</span>
-                  <div className="bar-track">
-                    <div className="bar-fill" style={{ height: `${heightPct}%` }} />
+                <div key={f.key} className="faixa-row">
+                  <span className="faixa-label">{f.label}</span>
+                  <div className="faixa-track">
+                    <div className="faixa-fill" style={{ width: `${barWidth}%`, background: f.color }} />
                   </div>
-                  <span className="bar-month">{d.month}</span>
+                  <span className="faixa-val">{loading ? '—' : val}</span>
                 </div>
               );
             })}
           </div>
         </div>
-      </div>
 
-      {/* RIGHT COLUMN */}
-      <div className="charts-right">
+        {/* COLUNA DIREITA */}
+        <div className="charts-right">
 
-        {/* DONUT */}
-        <div className="chart-card donut-card">
-          <h3 className="chart-title">Perfil por gênero</h3>
-          <p className="chart-sub">1.024 pessoas</p>
-          <div className="donut-row">
-            <div className="donut-wrap">
-              <div className="donut-ring" />
-              <div className="donut-center-text">
-                <span className="dc-number">1.024</span>
-                <span className="dc-label">pessoas</span>
-              </div>
-            </div>
-            <div className="donut-legend">
-              <div className="legend-item">
-                <span className="legend-dot" style={{ background: '#1d4ed8' }} />
-                <span className="legend-label">Feminino</span>
-                <span className="legend-pct">58%</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-dot" style={{ background: '#60a5fa' }} />
-                <span className="legend-label">Masculino</span>
-                <span className="legend-pct">39%</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-dot" style={{ background: '#f59e0b' }} />
-                <span className="legend-label">Outros</span>
-                <span className="legend-pct">3%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* FAIXA ETÁRIA */}
-        <div className="chart-card faixa-card">
-          <h3 className="chart-title">Faixa etária</h3>
-          <p className="chart-sub">distribuição das pessoas atendidas</p>
-          <div className="faixa-list">
-            {faixas.map(f => (
-              <div key={f.label} className="faixa-row">
-                <span className="faixa-label">{f.label}</span>
-                <div className="faixa-track">
-                  <div
-                    className="faixa-fill"
-                    style={{ width: `${f.value * 3}%`, background: f.color }}
-                  />
+          {/* DONUT — beneficiários */}
+          <div className="chart-card donut-card">
+            <h3 className="chart-title">Beneficiários</h3>
+            <p className="chart-sub">{loading ? '—' : totalBeneficios} benefícios ativos</p>
+            <div className="donut-row">
+              <div className="donut-wrap">
+                <div
+                  className="donut-ring"
+                  style={{ background: buildDonut([
+                    { value: beneficiarios.bpcDeficiente ?? 0, color: '#1d4ed8' },
+                    { value: beneficiarios.bpcIdoso ?? 0,      color: '#3b82f6' },
+                    { value: beneficiarios.bolsaFamilia ?? 0,  color: '#22c55e' },
+                  ], totalBeneficios) }}
+                />
+                <div className="donut-center-text">
+                  <span className="dc-number">{loading ? '—' : totalBeneficios}</span>
+                  <span className="dc-label">total</span>
                 </div>
-                <span className="faixa-val">{f.value}%</span>
               </div>
-            ))}
+              <div className="donut-legend">
+                {[
+                  { label: 'BPC Deficiente', value: beneficiarios.bpcDeficiente ?? 0, color: '#1d4ed8' },
+                  { label: 'BPC Idoso',      value: beneficiarios.bpcIdoso ?? 0,      color: '#3b82f6' },
+                  { label: 'Bolsa Família',  value: beneficiarios.bolsaFamilia ?? 0,  color: '#22c55e' },
+                ].map(b => {
+                  const pct = totalBeneficios > 0 ? Math.round((b.value / totalBeneficios) * 100) : 0;
+                  return (
+                    <div key={b.label} className="legend-item">
+                      <span className="legend-dot" style={{ background: b.color }} />
+                      <span className="legend-label">{b.label}</span>
+                      <span className="legend-pct">{loading ? '—' : `${pct}%`}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-        </div>
 
+
+</div>
       </div>
-    </div>
-  </Layout>
+    </Layout>
   );
 };
 
