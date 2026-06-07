@@ -96,6 +96,65 @@
   margin-top: 4px;
 }
 
+/* ── tabela de itens do plano ── */
+.pd-itens-table-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  margin-bottom: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pd-itens-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  min-width: 760px;
+}
+
+.pd-itens-table thead tr { background: #f8faff; }
+
+.pd-itens-table th {
+  padding: 10px 10px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+
+.pd-itens-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+
+.pd-itens-table tr:last-child td { border-bottom: none; }
+
+.pd-item-input {
+  min-width: 80px;
+}
+
+.pd-remove-row {
+  background: none;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 3px 8px;
+  transition: background .12s;
+}
+.pd-remove-row:hover { background: #fef2f2; }
+
+.pd-add-row {
+  margin-top: 8px;
+  font-size: 12.5px;
+}
+
 /* ── linhas numeradas de ações ── */
 .pdu-num-rows {
   display: flex;

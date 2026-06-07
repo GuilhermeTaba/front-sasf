@@ -351,6 +351,12 @@
 }
 
 /* ── Responsivo Dashboard ── */
+@media (max-width: 1024px) {
+  .stats-grid  { grid-template-columns: repeat(2, 1fr); }
+  .charts-row  { grid-template-columns: 1fr; }
+  .dash-title  { font-size: 24px; }
+}
+
 @media (max-width: 768px) {
   .dash-header { flex-direction: column; gap: 10px; }
   .dash-header .btn-primary { width: 100%; justify-content: center; }
