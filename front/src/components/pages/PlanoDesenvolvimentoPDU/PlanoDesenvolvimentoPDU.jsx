@@ -255,6 +255,7 @@ const PlanoDesenvolvimentoPDU = () => {
       numeroNIS_NIT_NB:        form.nis || null,
       nomeCuidadorResponsavel: form.responsavelCuidado || null,
       nomeTecnico:             form.tecnico || null,
+      tecnico:                 form.tecnico || null,
       sinteseSituacao:         form.sintese || null,
       situacaoAgravo,
       acoesPropostas:          acoesProposta.filter(Boolean).join('\n') || null,
@@ -266,7 +267,6 @@ const PlanoDesenvolvimentoPDU = () => {
       dataValidadePlano:       parseDateBR(form.dataValidade),
       dataReavaliacaoPlano:    parseDateBR(form.dataReavaliacao),
       dataDesligamento:        parseDateBR(form.dataDesligamento),
-      tecnico:                 form.tecnico || null,
     };
 
     const endpoint = planoId
