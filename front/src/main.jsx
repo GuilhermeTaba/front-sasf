@@ -30,6 +30,7 @@ import FichaVisitaDomiciliar      from './components/pages/FichaVisitaDomiciliar
 import PlanoDesenvolvimento       from './components/pages/PlanoDesenvolvimento/PlanoDesenvolvimento.jsx'
 import PlanoDesenvolvimentoPDU    from './components/pages/PlanoDesenvolvimentoPDU/PlanoDesenvolvimentoPDU.jsx'
 import FolhaProsseguimento        from './components/pages/FolhaProsseguimento/FolhaProsseguimento.jsx'
+import Menu                      from './components/pages/Menu/Menu.jsx'
 import CriarConta                from './components/pages/CriarConta/CriarConta.jsx'
 import EsqueciSenha             from './components/pages/EsqueciSenha/EsqueciSenha.jsx'
 import RedefinirSenha           from './components/pages/RedefinirSenha/RedefinirSenha.jsx'
@@ -52,6 +53,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/novo-atendimento/:familiaId/:atendimentoId"         element={<PrivateRoute element={<NovoAtendimento />} />} />
         <Route path="/agenda"             element={<PrivateRoute element={<Agenda />} />} />
         <Route path="/painel-admin"       element={<AdminRoute element={<PainelAdmin />} />} />
+        <Route path="/menu"                           element={<PrivateRoute element={<Menu />} />} />
         <Route path="/detalhes-familia/:id"           element={<PrivateRoute element={<DetalhesFamilia />} />} />
         <Route path="/ficha-atualizacao/:id"          element={<PrivateRoute element={<FichaAtualizacao />} />} />
         <Route path="/ficha-atualizacao/:id/:fichaId" element={<PrivateRoute element={<FichaAtualizacao />} />} />
