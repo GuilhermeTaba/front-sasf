@@ -570,16 +570,11 @@ const FichaAtualizacao = () => {
           </div>
         </div>
 
-        {/* ── ASSINATURAS ── */}
-        <SectionTitle>Assinatura</SectionTitle>
-        <div className="fa-assin-wrap">
-          <div className="fa-assin-grid">
-            <div className="fa-assin-col">
-              <input name="responsavel" value={form.responsavel} onChange={handle}
-                placeholder="Nome do responsável" className="fa-input fa-assin-input" />
-              <div className="fa-assin-line" />
-              <p className="fa-assin-label">Responsável</p>
-            </div>
+        <div className="fa-grid-2" style={{ marginTop: 8 }}>
+          <div className="fa-field">
+            <label>Nome do Responsável</label>
+            <input name="responsavel" value={form.responsavel} onChange={handle}
+              placeholder="Nome do responsável" className="fa-input" />
           </div>
         </div>
 
