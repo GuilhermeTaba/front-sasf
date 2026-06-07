@@ -42,7 +42,7 @@ const Login = () => {
       const payload = JSON.parse(atob(data.token.split(".")[1]));
       localStorage.setItem("cargo", payload.cargo);
       localStorage.setItem("userId", payload.id);
-      navigate("/dashboard");
+      navigate("/menu");
     } catch {
       setErro("Erro ao conectar com o servidor.");
     } finally {
