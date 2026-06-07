@@ -52,8 +52,9 @@ const DetalhesFamilia = () => {
   const location     = useLocation();
   const [selected, setSelected] = useState(location.state?.tab || 'cadastral');
 
-  const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [dragOver, setDragOver]           = useState(false);
+  const [documentos, setDocumentos]     = useState([]);
+  const [pendingFiles, setPendingFiles] = useState([]);
+  const [dragOver, setDragOver]         = useState(false);
   const fileInputRef = useRef(null);
 
   const [familia, setFamilia]   = useState(null);
@@ -64,6 +65,28 @@ const DetalhesFamilia = () => {
   const [gestao, setGestao]             = useState({ urgencia: '', tecnicoId: '', orientadorId: '' });
   const [savingGestao, setSavingGestao] = useState(false);
   const [gestaoMsg, setGestaoMsg]       = useState('');
+
+  const fetchDocumentos = async () => {
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+    try {
+      const url = `${API_URL}/familias/${id}/imagens`;
+      console.log('[Docs] GET', url);
+      const res = await fetch(url, { headers });
+      const body = await res.text();
+      console.log('[Docs] status:', res.status, '| body:', body);
+      if (res.ok) {
+        const data = JSON.parse(body);
+        setDocumentos(Array.isArray(data) ? data.map(a => ({
+          id:   a.id,
+          name: a.nomeArquivo,
+          size: a.tamanho,
+          type: a.contentType,
+        })) : []);
+      }
+    } catch (e) {
+      console.error('[Docs] erro:', e);
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -236,6 +259,8 @@ const DetalhesFamilia = () => {
         }));
       })
       .catch(() => {});
+
+    fetchDocumentos();
   }, [id]);
 
   const handleSaveGestao = async () => {
@@ -286,18 +311,58 @@ const DetalhesFamilia = () => {
   };
 
   const addFiles = files => {
-    const next = Array.from(files).map(f => ({
-      id: Date.now() + Math.random(),
-      name: f.name,
-      size: f.size,
-      type: f.type,
-      url:  URL.createObjectURL(f),
+    if (!files || files.length === 0) return;
+    const novos = Array.from(files).map(f => ({
+      uid:      crypto.randomUUID(),
+      file:     f,
+      name:     f.name,
+      size:     f.size,
+      type:     f.type,
+      sending:  false,
     }));
-    setUploadedFiles(p => [...p, ...next]);
+    setPendingFiles(prev => [...prev, ...novos]);
   };
 
-  const removeFile = id =>
-    setUploadedFiles(p => p.filter(f => f.id !== id));
+  const updatePendingName = (uid, name) =>
+    setPendingFiles(prev => prev.map(p => p.uid === uid ? { ...p, name } : p));
+
+  const cancelPending = uid =>
+    setPendingFiles(prev => prev.filter(p => p.uid !== uid));
+
+  const sendPending = async uid => {
+    setPendingFiles(prev => prev.map(p => p.uid === uid ? { ...p, sending: true } : p));
+    const pending = pendingFiles.find(p => p.uid === uid);
+    const renamedFile = new File([pending.file], pending.name.trim() || pending.file.name, { type: pending.type });
+    const formData = new FormData();
+    formData.append('file', renamedFile);
+    const res = await fetch(`${API_URL}/familias/${id}/imagens`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+      body: formData,
+    });
+    if (res.ok) {
+      setPendingFiles(prev => prev.filter(p => p.uid !== uid));
+      await fetchDocumentos();
+    } else {
+      setPendingFiles(prev => prev.map(p => p.uid === uid ? { ...p, sending: false } : p));
+    }
+  };
+
+  const removeFile = async docId => {
+    const res = await fetch(`${API_URL}/imagens/${docId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+    });
+    if (res.ok) setDocumentos(prev => prev.filter(d => d.id !== docId));
+  };
+
+  const openArquivo = async docId => {
+    const res = await fetch(`${API_URL}/imagens/${docId}`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+    });
+    const blob = await res.blob();
+    window.open(URL.createObjectURL(blob), '_blank');
+  };
 
   const avatarBg = COLORS[(Number(id) ?? 0) % COLORS.length];
 
@@ -584,7 +649,7 @@ const DetalhesFamilia = () => {
       <div className="det-opcoes-grid">
         {OPCOES.map(op => {
           const isActive = op.key === selected;
-          const count    = op.key === 'documentos' ? uploadedFiles.length : (listas[op.key]?.length ?? 0);
+          const count    = op.key === 'documentos' ? documentos.length : (listas[op.key]?.length ?? 0);
           return (
             <button
               key={op.key}
@@ -621,13 +686,37 @@ const DetalhesFamilia = () => {
       {/* ABA DOCUMENTOS */}
       {selected === 'documentos' && (() => {
         const op = OPCOES.find(o => o.key === 'documentos');
+        const fmtSize = b => b < 1048576 ? `${(b/1024).toFixed(1)} KB` : `${(b/1048576).toFixed(1)} MB`;
+        const FileIcon = ({ type }) => {
+          const isPdf = type === 'application/pdf';
+          const isImg = type?.startsWith('image/');
+          const c = isPdf ? '#ef4444' : isImg ? '#7c3aed' : '#6b7280';
+          return (
+            <div className="lista-doc-item-icon" style={{ background: op.bg, color: c }}>
+              {isPdf ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                </svg>
+              ) : isImg ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+              )}
+            </div>
+          );
+        };
         return (
           <>
             <div className="lista-doc-section-header">
               <div>
                 <h2 className="lista-doc-title">Documentos Anexados</h2>
                 <p className="lista-doc-sub">
-                  {familia?.responsavel}&ensp;&middot;&ensp;{uploadedFiles.length} arquivo{uploadedFiles.length !== 1 ? 's' : ''}
+                  {familia?.responsavel}&ensp;&middot;&ensp;{documentos.length} arquivo{documentos.length !== 1 ? 's' : ''}
                 </p>
               </div>
               <button
@@ -637,14 +726,13 @@ const DetalhesFamilia = () => {
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19"/>
-                  <line x1="5"  y1="12" x2="19" y2="12"/>
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
                 Adicionar Documento
               </button>
             </div>
 
-            {/* DROP ZONE */}
+            {/* ZONA DE DROP */}
             <div
               className={`det-upload-zone${dragOver ? ' det-upload-zone--over' : ''}`}
               onClick={() => fileInputRef.current?.click()}
@@ -658,7 +746,7 @@ const DetalhesFamilia = () => {
                 multiple
                 accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx"
                 style={{ display: 'none' }}
-                onChange={e => addFiles(e.target.files)}
+                onChange={e => { addFiles(e.target.files); e.target.value = ''; }}
               />
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ marginBottom: 10 }}>
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="#0369a1" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -669,72 +757,90 @@ const DetalhesFamilia = () => {
               <p className="det-upload-hint">PDF, PNG, JPG, DOC, XLS &mdash; até 10 MB cada</p>
             </div>
 
-            {/* LISTA DE ARQUIVOS */}
-            {uploadedFiles.length > 0 && (
-              <div className="lista-doc-card" style={{ marginTop: 16 }}>
-                {uploadedFiles.map(f => {
-                  const isPdf = f.type === 'application/pdf';
-                  const isImg = f.type.startsWith('image/');
-                  const iconColor = isPdf ? '#ef4444' : isImg ? '#7c3aed' : '#6b7280';
-                  return (
-                    <div key={f.id} className="lista-doc-item" style={{ cursor: 'default' }}>
-                      <div className="lista-doc-item-icon" style={{ background: op.bg, color: iconColor }}>
-                        {isPdf ? (
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                          </svg>
-                        ) : isImg ? (
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2"/>
-                            <circle cx="8.5" cy="8.5" r="1.5"/>
-                            <polyline points="21 15 16 10 5 21"/>
-                          </svg>
-                        ) : (
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                            <line x1="16" y1="13" x2="8" y2="13"/>
-                            <line x1="16" y1="17" x2="8" y2="17"/>
-                          </svg>
-                        )}
+            {/* ARQUIVOS PENDENTES (aguardando envio) */}
+            {pendingFiles.length > 0 && (
+              <div className="lista-doc-card" style={{ marginTop: 16, borderColor: '#fde68a' }}>
+                <div style={{ padding: '10px 20px 6px', fontSize: 11, fontWeight: 700, color: '#92400e', textTransform: 'uppercase', letterSpacing: '.04em', background: '#fffbeb', borderBottom: '1px solid #fde68a' }}>
+                  Aguardando envio — edite o nome antes de confirmar
+                </div>
+                {pendingFiles.map(p => (
+                  <div key={p.uid} className="lista-doc-item" style={{ cursor: 'default', background: '#fffbeb' }}>
+                    <FileIcon type={p.type} />
+                    <div className="lista-doc-item-info">
+                      <input
+                        value={p.name}
+                        onChange={e => updatePendingName(p.uid, e.target.value)}
+                        style={{
+                          width: '100%', border: '1.5px solid #fcd34d', borderRadius: 7,
+                          padding: '5px 10px', fontSize: 13, fontWeight: 600,
+                          background: '#fff', outline: 'none', color: '#1e293b',
+                        }}
+                        onFocus={e => e.target.style.borderColor = '#f59e0b'}
+                        onBlur={e => e.target.style.borderColor = '#fcd34d'}
+                      />
+                      <div className="lista-doc-item-meta" style={{ marginTop: 4 }}>
+                        <span>{fmtSize(p.size)}</span>
                       </div>
-                      <div className="lista-doc-item-info">
-                        <div className="lista-doc-item-titulo">{f.name}</div>
-                        <div className="lista-doc-item-meta">
-                          <span>{fmtSize(f.size)}</span>
-                        </div>
-                      </div>
-                      <a
-                        href={f.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="lista-doc-ver-btn"
-                        style={{ borderColor: op.border, color: op.color }}
-                        onClick={e => e.stopPropagation()}
-                      >
-                        <span className="lista-doc-ver-label">Abrir</span>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                          strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M5 12h14M12 5l7 7-7 7"/>
-                        </svg>
-                      </a>
-                      <button
-                        className="det-upload-remove"
-                        onClick={() => removeFile(f.id)}
-                        title="Remover"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                          strokeWidth="2.2" strokeLinecap="round">
-                          <line x1="18" y1="6" x2="6" y2="18"/>
-                          <line x1="6"  y1="6" x2="18" y2="18"/>
-                        </svg>
-                      </button>
                     </div>
-                  );
-                })}
+                    <button
+                      className="lista-doc-nova-btn"
+                      style={{ background: op.color, padding: '7px 14px', fontSize: 13, opacity: p.sending ? 0.7 : 1 }}
+                      disabled={p.sending}
+                      onClick={() => sendPending(p.uid)}
+                    >
+                      {p.sending ? 'Enviando…' : 'Enviar'}
+                    </button>
+                    <button
+                      className="det-upload-remove"
+                      onClick={() => cancelPending(p.uid)}
+                      title="Cancelar"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
+
+            {/* DOCUMENTOS JÁ ENVIADOS */}
+            <div className="lista-doc-card" style={{ marginTop: 16 }}>
+              {documentos.length === 0 ? (
+                <div className="lista-doc-empty">Nenhum documento anexado.</div>
+              ) : (
+                documentos.map(doc => (
+                  <div key={doc.id} className="lista-doc-item" style={{ cursor: 'default' }}>
+                    <FileIcon type={doc.type} />
+                    <div className="lista-doc-item-info">
+                      <div className="lista-doc-item-titulo">{doc.name}</div>
+                      <div className="lista-doc-item-meta">
+                        <span>{fmtSize(doc.size)}</span>
+                      </div>
+                    </div>
+                    <button
+                      className="lista-doc-ver-btn"
+                      style={{ borderColor: op.border, color: op.color }}
+                      onClick={e => { e.stopPropagation(); openArquivo(doc.id); }}
+                    >
+                      <span className="lista-doc-ver-label">Abrir</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                      </svg>
+                    </button>
+                    <button
+                      className="det-upload-remove"
+                      onClick={e => { e.stopPropagation(); removeFile(doc.id); }}
+                      title="Remover"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           </>
         );
       })()}
