@@ -66,7 +66,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/plano-pdu/:id/:planoId"         element={<PrivateRoute element={<PlanoDesenvolvimentoPDU />} />} />
         <Route path="/folha-prosseguimento/:id"       element={<PrivateRoute element={<FolhaProsseguimento />} />} />
         <Route path="/folha-prosseguimento/:id/:folhaId" element={<PrivateRoute element={<FolhaProsseguimento />} />} />
-        <Route path="/criar-conta"        element={<PrivateRoute element={<CriarConta />} />} />
+<Route path="/criar-conta"        element={<PrivateRoute element={<CriarConta />} />} />
         <Route path="*"                   element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
