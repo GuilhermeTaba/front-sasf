@@ -331,7 +331,7 @@ const PlanoDesenvolvimento = () => {
                   <td><textarea className="pd-tbl-area" rows={2} value={ac.acaoFamilia}
                     onChange={e => handleAcao(i, 'acaoFamilia', e.target.value)} /></td>
                   <td><input className="fa-tbl-input" value={ac.prazo}
-                    onChange={e => handleAcao(i, 'prazo', e.target.value)} placeholder="dd/mm/aa" /></td>
+                    onChange={e => handleAcao(i, 'prazo', e.target.value)} placeholder="ex: 3 meses" /></td>
                   <td><textarea className="pd-tbl-area" rows={2} value={ac.resultado}
                     onChange={e => handleAcao(i, 'resultado', e.target.value)} /></td>
                 </tr>
