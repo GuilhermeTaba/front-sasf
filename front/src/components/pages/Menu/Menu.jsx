@@ -103,6 +103,7 @@ const Menu = () => {
 
   return (
     <Layout>
+      <div className="menu-page">
       <div className="menu-header">
         <h1 className="menu-title">Menu</h1>
         <p className="menu-subtitle">Selecione uma seção para começar a trabalhar.</p>
@@ -130,6 +131,7 @@ const Menu = () => {
             </svg>
           </button>
         ))}
+      </div>
       </div>
     </Layout>
   );
