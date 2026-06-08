@@ -818,15 +818,6 @@ const NovosCadastro = () => {
             </tbody>
           </table>
         </div>
-        <div className="legend-box">
-          <p className="legend-title">Legenda — Fator de Risco Social (b):</p>
-          <p className="legend-text">
-            1. Alcoolismo; 2. Def. auditiva; 3. Def. física; 4. Def. mental; 5. Def. visual;
-            6. Desemprego; 7. Drogadição; 8. HIV+; 9. Prob. psiquiátricos; 10. Situação de rua;
-            11. Trabalho infantil; 12. Violência doméstica; 13. Med. Socioeducativa;
-            14. Privação de liberdade; 15. Acolhimento Institucional; 16. Outro.
-          </p>
-        </div>
 
         {/* ── INF. COMPLEMENTARES ── */}
         <SectionTitle>Informações Complementares — Fl. 2/2</SectionTitle>

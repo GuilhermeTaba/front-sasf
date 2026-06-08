@@ -104,34 +104,34 @@ const Menu = () => {
   return (
     <Layout>
       <div className="menu-page">
-      <div className="menu-header">
-        <h1 className="menu-title">Menu</h1>
-        <p className="menu-subtitle">Selecione uma seção para começar a trabalhar.</p>
-      </div>
+        <div className="menu-header">
+          <h1 className="menu-title">Menu</h1>
+          <p className="menu-subtitle">Selecione uma seção para começar a trabalhar.</p>
+        </div>
 
-      <div className="menu-grid">
-        {visiveis.map(op => (
-          <button
-            key={op.path}
-            className="menu-card"
-            style={{ '--card-color': op.color, '--card-bg': op.bg }}
-            onClick={() => navigate(op.path)}
-          >
-            <div className="menu-card-icon">
-              {op.icon}
-            </div>
-            <div className="menu-card-body">
-              <div className="menu-card-label">{op.label}</div>
-              <div className="menu-card-desc">{op.desc}</div>
-            </div>
-            <svg className="menu-card-arrow" width="20" height="20" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" strokeWidth="2.2"
-              strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </button>
-        ))}
-      </div>
+        <div className="menu-grid">
+          {visiveis.map(op => (
+            <button
+              key={op.path}
+              className="menu-card"
+              style={{ '--card-color': op.color, '--card-bg': op.bg }}
+              onClick={() => navigate(op.path)}
+            >
+              <div className="menu-card-icon">
+                {op.icon}
+              </div>
+              <div className="menu-card-body">
+                <div className="menu-card-label">{op.label}</div>
+                <div className="menu-card-desc">{op.desc}</div>
+              </div>
+              <svg className="menu-card-arrow" width="20" height="20" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2.2"
+                strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          ))}
+        </div>
       </div>
     </Layout>
   );
