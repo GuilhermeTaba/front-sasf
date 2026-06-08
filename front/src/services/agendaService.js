@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080"; //criar depois .env.production com a url do deploy
+const API_URL = import.meta.env.VITE_API_URL;
  
 const getHeaders = () => ({
   "Content-Type": "application/json",
